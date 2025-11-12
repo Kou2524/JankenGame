@@ -1,75 +1,65 @@
 import pyxel
 
 pyxel.init(160, 120, title="Janken Game", fps=30)
-pyxel.mouse(False)  # ← Pyxelの十字を消す
 
+# 0: TITLE / 1: GAME
 scene = 0
-menu_idx = 0
+menu_idx = 0  # 選択中の項目
 
+# (表示名, x, y, w, h)
 MENU = [
     ("START", 52, 70, 56, 12),
     ("HOW TO", 48, 86, 64, 12),
 ]
 
-def tap_pressed():
-    return (pyxel.btnp(pyxel.KEY_SPACE) or
-            pyxel.btnp(pyxel.KEY_RETURN) or
-            pyxel.btnp(pyxel.KEY_Z))
+def btn_decide():
+    return pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN)
 
-def is_hover(mx, my, x, y, w, h):
-    return (x <= mx < x + w) and (y <= my < y + h)
-
-def update_title():
-    global scene, menu_idx
-    mx, my = pyxel.mouse_x, pyxel.mouse_y
-
-    for i, (_, x, y, w, h) in enumerate(MENU):
-        if is_hover(mx, my, x, y, w, h):
-            menu_idx = i
-
-    if pyxel.btnp(pyxel.KEY_UP):
-        menu_idx = (menu_idx - 1) % len(MENU)
-    if pyxel.btnp(pyxel.KEY_DOWN):
-        menu_idx = (menu_idx + 1) % len(MENU)
-
-    if tap_pressed():
-        if menu_idx == 0:
-            scene = 1
-        else:
-            pass  # HOW TOは未実装
-
-def update_game():
-    global scene
-    if tap_pressed():
-        scene = 0
+def in_rect(mx, my, x, y, w, h):
+    return x <= mx < x + w and y <= my < y + h
 
 def update():
+    global scene, menu_idx
+
     if scene == 0:
-        update_title()
+        # マウス位置でホバー反映
+        mx, my = pyxel.mouse_x, pyxel.mouse_y
+        for i, (_, x, y, w, h) in enumerate(MENU):
+            if in_rect(mx, my, x, y, w, h):
+                menu_idx = i
+
+        # ↑↓で移動
+        if pyxel.btnp(pyxel.KEY_UP):
+            menu_idx = (menu_idx - 1) % len(MENU)
+        if pyxel.btnp(pyxel.KEY_DOWN):
+            menu_idx = (menu_idx + 1) % len(MENU)
+
+        # 決定
+        if btn_decide():
+            scene = 1 if menu_idx == 0 else 0  # HOW TO は未実装なので据え置き
+
     else:
-        update_game()
-
-def draw_title():
-    pyxel.cls(0)
-    pyxel.text(40, 45, "JANKEN GAME", 7)
-    for i, (label, x, y, w, h) in enumerate(MENU):
-        hover = (i == menu_idx)
-        col = 10 if hover else 5
-        pyxel.rectb(x, y, w, h, col)
-        tx = x + (w - len(label) * 4) // 2
-        ty = y + 3
-        pyxel.text(tx, ty, label, 7 if hover else 6)
-    pyxel.text(18, 110, "Hover and press SPACE/ENTER", 13)
-
-def draw_game():
-    pyxel.cls(1)
-    pyxel.text(50, 58, "GAME START!", 7)
-    pyxel.text(22, 100, "Press SPACE/ENTER to back", 11)
+        # ゲーム中は決定キーでタイトルへ戻る（仮）
+        if btn_decide():
+            scene = 0
 
 def draw():
+    pyxel.cls(0)
+
     if scene == 0:
-        draw_title()
+        pyxel.text(40, 45, "JANKEN GAME", 7)
+
+        for i, (label, x, y, w, h) in enumerate(MENU):
+            hi = (i == menu_idx)
+            pyxel.rectb(x, y, w, h, 10 if hi else 5)
+            tx = x + (w - len(label) * 4) // 2
+            pyxel.text(tx, y + 3, label, 7 if hi else 6)
+
+        pyxel.text(18, 110, "Hover and press SPACE/ENTER", 13)
+
     else:
-        draw_game()
+        pyxel.cls(1)
+        pyxel.text(50, 58, "GAME START!", 7)
+        pyxel.text(22, 100, "Press SPACE/ENTER to back", 11)
 
 pyxel.run(update, draw)
