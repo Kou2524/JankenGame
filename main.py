@@ -2,7 +2,7 @@ import pyxel
 
 # 画面は160x120
 pyxel.init(160, 120, title="Janken Game", fps=30)
-pyxel.mouse(True)  # 自前カーソルのために座標だけ使う
+pyxel.mouse(False)  # ← 十字カーソル非表示、座標はそのまま取得可能
 
 # ----- state -----
 scene = 0           # 0: タイトル / 1: ゲーム
