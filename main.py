@@ -1,7 +1,7 @@
 import pyxel
 
 pyxel.init(160, 120, title="Janken Game", fps=30)
-pyxel.mouse(False)  # ← Pyxel側の十字は出さない
+pyxel.mouse(False)  # ← Pyxelの十字を消す
 
 scene = 0
 menu_idx = 0
@@ -12,7 +12,9 @@ MENU = [
 ]
 
 def tap_pressed():
-    return pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z)
+    return (pyxel.btnp(pyxel.KEY_SPACE) or
+            pyxel.btnp(pyxel.KEY_RETURN) or
+            pyxel.btnp(pyxel.KEY_Z))
 
 def is_hover(mx, my, x, y, w, h):
     return (x <= mx < x + w) and (y <= my < y + h)
@@ -21,23 +23,20 @@ def update_title():
     global scene, menu_idx
     mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-    # マウス位置でハイライト
     for i, (_, x, y, w, h) in enumerate(MENU):
         if is_hover(mx, my, x, y, w, h):
             menu_idx = i
 
-    # ↑↓キーでも選択移動
     if pyxel.btnp(pyxel.KEY_UP):
         menu_idx = (menu_idx - 1) % len(MENU)
     if pyxel.btnp(pyxel.KEY_DOWN):
         menu_idx = (menu_idx + 1) % len(MENU)
 
-    # 決定
     if tap_pressed():
         if menu_idx == 0:
             scene = 1
         else:
-            pass  # HOW TO は今は未実装
+            pass  # HOW TOは未実装
 
 def update_game():
     global scene
