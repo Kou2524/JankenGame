@@ -6,15 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
     <style>
-      html, body { margin:0; height:100%; background:#000; }
-      #wrap { position:fixed; inset:0; display:grid; place-items:center; background:#000; }
-      pyxel-run, canvas { image-rendering: pixelated; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+      }
+      #wrap {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #000;
+      }
+      pyxel-run, canvas {
+        image-rendering: pixelated;
+        cursor: default; /* ← カーソルを表示させるための追加行！ */
+      }
       #hint {
-        position:fixed; inset:0; display:grid; place-items:end center;
-        padding-bottom:24px; color:#bbb; font:14px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: end center;
+        padding-bottom: 24px;
+        color: #bbb;
+        font: 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        user-select: none;
+        pointer-events: none;
       }
     </style>
   </head>
+
   <body>
     <div id="wrap">
       <pyxel-run root="." name="main.py"></pyxel-run>
