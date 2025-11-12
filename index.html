@@ -19,9 +19,9 @@
         background: #000;
       }
       pyxel-run, canvas {
-        image-rendering: pixelated;
-        cursor: default; /* ← カーソルを表示させるための追加行！ */
-      }
+  image-rendering: pixelated;
+  cursor: none;  /* ← もうカーソル使わないならこちらがシンプル */
+}
       #hint {
         position: fixed;
         inset: 0;
