@@ -15,11 +15,11 @@ MENU = [
 
 
 def btn_decide():
-    # SPACE / ENTER / 左クリック（Web版は MOUSE_BUTTON_LEFT）
+    # SPACE / ENTER / クリック（Web版は btnp(0) が左クリック）
     return (
         pyxel.btnp(pyxel.KEY_SPACE)
         or pyxel.btnp(pyxel.KEY_RETURN)
-        or pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+        or pyxel.btnp(0)  # ← ここだけが Web版 pyxel.js の正解！
     )
 
 
@@ -54,7 +54,7 @@ def update():
                 press_timer = 6  # 6フレーム光らせる
 
     else:
-        # GAME画面：SPACE/ENTERで戻る（仮）
+        # GAME画面：SPACE/ENTER/クリックで戻る（仮）
         if btn_decide():
             scene = 0
 
@@ -69,7 +69,7 @@ def draw():
         # START ボタン
         label, x, y, w, h = MENU[0]
 
-        # ★ 押している間だけ黄色、それ以外は青
+        # ★ 黄色点滅中：黄色、それ以外：青
         if press_timer > 0:
             border_col = 10  # 黄色
             text_col = 7
@@ -85,6 +85,7 @@ def draw():
         draw_centered_text(110, "Hover and press SPACE/ENTER", 13)
 
     else:
+        # GAME画面
         pyxel.cls(1)
         draw_centered_text(58, "GAME START!", 7)
         draw_centered_text(100, "Press SPACE/ENTER to back", 11)
