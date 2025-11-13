@@ -14,7 +14,7 @@ MENU = [
 
 
 def btn_decide():
-    # SPACE / ENTER / 左クリック(0) で決定
+    # SPACE / ENTER / 左クリック(0) で決定（Web版は btnp(0)）
     return (
         pyxel.btnp(pyxel.KEY_SPACE)
         or pyxel.btnp(pyxel.KEY_RETURN)
@@ -26,10 +26,9 @@ def in_rect(mx, my, x, y, w, h):
     return x <= mx < x + w and y <= my < y + h
 
 
-# 横方向の中央にテキストを出す関数
 def draw_centered_text(y, text, col):
-    text_w = len(text) * 4          # フォント幅4px × 文字数
-    x = (pyxel.width - text_w) // 2 # 画面幅から逆算して中央
+    text_w = len(text) * 4
+    x = (pyxel.width - text_w) // 2
     pyxel.text(x, y, text, col)
 
 
@@ -60,28 +59,26 @@ def update():
 
     elif scene == 1:
         # ===== ゲーム画面（仮） =====
-        # SPACE / ENTER / クリックでタイトルへ戻る
         if btn_decide():
-            scene = 0
+            scene = 0  # タイトルへ戻る
 
     elif scene == 2:
         # ===== HOW TO 画面 =====
-        # SPACE / ENTER / クリックでタイトルへ戻る
         if btn_decide():
-            scene = 0
+            scene = 0  # タイトルへ戻る
 
 
 def draw():
     pyxel.cls(0)
 
     if scene == 0:
-        # ===== タイトル画面描画 =====
+        # ===== タイトル描画 =====
         draw_centered_text(45, "JANKEN GAME", 7)
 
-        # メニュー
+        # メニュー（START / HOW TO 両方描画）
         for i, (label, x, y, w, h) in enumerate(MENU):
-            hi = (i == menu_idx)            # 選択中かどうか
-            border_col = 10 if hi else 5    # 選択中:黄 / 非選択:青
+            hi = (i == menu_idx)            # 選択中？
+            border_col = 10 if hi else 5    # 黄 or 青
             text_col = 7 if hi else 6
 
             pyxel.rectb(x, y, w, h, border_col)
