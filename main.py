@@ -15,11 +15,11 @@ MENU = [
 
 
 def btn_decide():
-    # SPACE / ENTER / マウス左クリック
+    # SPACE / ENTER / 左クリック（Web版は MOUSE_BUTTON_LEFT）
     return (
         pyxel.btnp(pyxel.KEY_SPACE)
         or pyxel.btnp(pyxel.KEY_RETURN)
-        or pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON)
+        or pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
     )
 
 
@@ -41,19 +41,20 @@ def update():
         label, x, y, w, h = MENU[0]
 
         if press_timer > 0:
-            # すでに押されている → 点滅中カウントダウン
+            # 黄色の点滅中
             press_timer -= 1
             if press_timer == 0:
-                # 点滅終わったらゲーム画面へ
+                # 点滅が終わったらゲームへ
                 scene = 1
+
         else:
             # まだ押されていない状態
             if in_rect(mx, my, x, y, w, h) and btn_decide():
-                # ボタンの上で決定 → 黄色にするタイマーセット
-                press_timer = 6  # 6フレームくらい光らせる
+                # ボタンの上で押された → 黄色点滅開始
+                press_timer = 6  # 6フレーム光らせる
 
     else:
-        # ゲーム中は決定キーでタイトルへ戻る（仮）
+        # GAME画面：SPACE/ENTERで戻る（仮）
         if btn_decide():
             scene = 0
 
