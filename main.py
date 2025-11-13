@@ -64,7 +64,7 @@ def draw():
             pyxel.text(tx, y + 3, label, 7 if hi else 6)
 
         # 説明文も中央に
-        draw_centered_text(110, "Hover and press SPACE/ENTER", 13)
+        draw_centered_text(110, "Hover and press SPACE / ENTER", 13)
 
     else:
         pyxel.cls(1)
