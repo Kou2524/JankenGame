@@ -13,15 +13,6 @@ MENU = [
 ]
 
 
-def btn_decide():
-    # SPACE / ENTER / 左クリック(0) で決定（Web版は btnp(0)）
-    return (
-        pyxel.btnp(pyxel.KEY_SPACE)
-        or pyxel.btnp(pyxel.KEY_RETURN)
-        or pyxel.btnp(0)
-    )
-
-
 def in_rect(mx, my, x, y, w, h):
     return x <= mx < x + w and y <= my < y + h
 
@@ -39,33 +30,54 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # マウス位置でホバー反映
+        # ★ マウス位置でホバー反映（PC用）
         for i, (_, x, y, w, h) in enumerate(MENU):
             if in_rect(mx, my, x, y, w, h):
                 menu_idx = i
 
-        # ↑↓キーで移動
+        # ★ ↑↓キーで選択移動（PC用）
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % len(MENU)
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % len(MENU)
 
-        # 決定
-        if btn_decide():
+        # ★ キーボードで決定（SPACE / ENTER）
+        if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
-                scene = 1  # START → ゲーム画面
+                scene = 1  # START → GAME
             elif menu_idx == 1:
-                scene = 2  # HOW TO → 説明画面
+                scene = 2  # HOW TO → 説明
+
+        # ★ クリック / タップで決定
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            # どのボタンの上を押したか調べる
+            for i, (_, x, y, w, h) in enumerate(MENU):
+                if in_rect(mx, my, x, y, w, h):
+                    menu_idx = i
+                    if menu_idx == 0:
+                        scene = 1  # START
+                    elif menu_idx == 1:
+                        scene = 2  # HOW TO
+                    break  # 見つかったら抜ける
 
     elif scene == 1:
         # ===== ゲーム画面（仮） =====
-        if btn_decide():
-            scene = 0  # タイトルへ戻る
+        # SPACE / ENTER / クリック でタイトルに戻る
+        if (
+            pyxel.btnp(pyxel.KEY_SPACE)
+            or pyxel.btnp(pyxel.KEY_RETURN)
+            or pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+        ):
+            scene = 0
 
     elif scene == 2:
         # ===== HOW TO 画面 =====
-        if btn_decide():
-            scene = 0  # タイトルへ戻る
+        if (
+            pyxel.btnp(pyxel.KEY_SPACE)
+            or pyxel.btnp(pyxel.KEY_RETURN)
+            or pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+        ):
+            scene = 0
 
 
 def draw():
@@ -75,7 +87,7 @@ def draw():
         # ===== タイトル描画 =====
         draw_centered_text(45, "JANKEN GAME", 7)
 
-        # メニュー（START / HOW TO 両方描画）
+        # メニュー（START / HOW TO）
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)            # 選択中？
             border_col = 10 if hi else 5    # 黄 or 青
@@ -93,7 +105,7 @@ def draw():
         pyxel.cls(1)
         draw_centered_text(40, "GAME START!", 7)
         draw_centered_text(70, "Janken part is here", 7)
-        draw_centered_text(100, "Press SPACE/ENTER to back", 11)
+        draw_centered_text(100, "Press SPACE/CLICK to back", 11)
 
     elif scene == 2:
         # ===== HOW TO 画面 =====
@@ -101,7 +113,7 @@ def draw():
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Select ROCK / SCISSORS / PAPER", 7)
         pyxel.text(10, 60, "- Win 3 times to clear", 7)
-        pyxel.text(10, 80, "Press SPACE/ENTER or click to TITLE", 13)
+        pyxel.text(10, 80, "Press SPACE/CLICK to TITLE", 13)
 
 
 pyxel.run(update, draw)
