@@ -18,6 +18,12 @@ def btn_decide():
 def in_rect(mx, my, x, y, w, h):
     return x <= mx < x + w and y <= my < y + h
 
+# 追加：横方向の中央にテキストを出す関数
+def draw_centered_text(y, text, col):
+    text_w = len(text) * 4          # フォント幅4px × 文字数
+    x = (pyxel.width - text_w) // 2 # 画面幅から逆算して中央
+    pyxel.text(x, y, text, col)
+
 def update():
     global scene, menu_idx
 
@@ -47,19 +53,22 @@ def draw():
     pyxel.cls(0)
 
     if scene == 0:
-        pyxel.text(40, 45, "JANKEN GAME", 7)
+        # タイトルを中央に
+        draw_centered_text(45, "JANKEN GAME", 7)
 
+        # メニュー（今のままでOK・これも中央に出てる）
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)
             pyxel.rectb(x, y, w, h, 10 if hi else 5)
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, 7 if hi else 6)
 
-        pyxel.text(18, 110, "Hover and press SPACE/ENTER", 13)
+        # 説明文も中央に
+        draw_centered_text(110, "Hover and press SPACE/ENTER", 13)
 
     else:
         pyxel.cls(1)
-        pyxel.text(50, 58, "GAME START!", 7)
-        pyxel.text(22, 100, "Press SPACE/ENTER to back", 11)
+        draw_centered_text(58, "GAME START!", 7)
+        draw_centered_text(100, "Press SPACE/ENTER to back", 11)
 
 pyxel.run(update, draw)
