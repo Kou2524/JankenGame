@@ -4,16 +4,21 @@ pyxel.init(160, 120, title="Janken Game", fps=30)
 
 # 0: TITLE / 1: GAME
 scene = 0
-menu_idx = 0  # 選択中の項目（今は1個だけ）
+# ★ 初期は「未選択」にしておく
+menu_idx = -1  # 何も選ばれてない状態
 
 # (表示名, x, y, w, h)
-# HOW TO を削除して、START だけにする
 MENU = [
-    ("START", 52, 72, 56, 12),  # ← JANKEN と 説明文のちょうど真ん中あたり
+    ("START", 52, 72, 56, 12),
 ]
 
 def btn_decide():
-    return pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN)
+    # ★ SPACE / ENTER に加えて マウス左クリック でも決定できるように
+    return (
+        pyxel.btnp(pyxel.KEY_SPACE)
+        or pyxel.btnp(pyxel.KEY_RETURN)
+        or pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON)
+    )
 
 def in_rect(mx, my, x, y, w, h):
     return x <= mx < x + w and y <= my < y + h
@@ -28,21 +33,29 @@ def update():
     global scene, menu_idx
 
     if scene == 0:
-        # マウス位置でホバー反映（今はSTARTだけだけど一応そのまま）
         mx, my = pyxel.mouse_x, pyxel.mouse_y
+
+        # ★ マウスがボタンの上に来たら menu_idx を更新
         for i, (_, x, y, w, h) in enumerate(MENU):
             if in_rect(mx, my, x, y, w, h):
                 menu_idx = i
 
-        # ↑↓で移動（1個しかないので実質 menu_idx は0のまま）
+        # ★ ↑↓キーでも選択できるように
         if pyxel.btnp(pyxel.KEY_UP):
-            menu_idx = (menu_idx - 1) % len(MENU)
-        if pyxel.btnp(pyxel.KEY_DOWN):
-            menu_idx = (menu_idx + 1) % len(MENU)
+            if menu_idx == -1:
+                menu_idx = 0
+            else:
+                menu_idx = (menu_idx - 1) % len(MENU)
 
-        # 決定
-        if btn_decide():
-            scene = 1  # STARTしかないので、押したらGAMEへ
+        if pyxel.btnp(pyxel.KEY_DOWN):
+            if menu_idx == -1:
+                menu_idx = 0
+            else:
+                menu_idx = (menu_idx + 1) % len(MENU)
+
+        # ★ 何かが選ばれている状態で決定ボタンが押されたらゲームへ
+        if menu_idx != -1 and btn_decide():
+            scene = 1
 
     else:
         # ゲーム中は決定キーでタイトルへ戻る（仮）
@@ -56,12 +69,15 @@ def draw():
         # タイトルを中央に
         draw_centered_text(45, "JANKEN GAME", 7)
 
-        # START ボタン
+        # START ボタン（選ばれてるときだけ黄色枠）
         for i, (label, x, y, w, h) in enumerate(MENU):
-            hi = (i == menu_idx)
-            pyxel.rectb(x, y, w, h, 10 if hi else 5)
+            hi = (i == menu_idx)              # 選択中かどうか
+            border_col = 10 if hi else 5      # ★ 選択中：黄色 / 非選択：青
+            text_col = 7 if hi else 6
+
+            pyxel.rectb(x, y, w, h, border_col)
             tx = x + (w - len(label) * 4) // 2
-            pyxel.text(tx, y + 3, label, 7 if hi else 6)
+            pyxel.text(tx, y + 3, label, text_col)
 
         # 説明文も中央に
         draw_centered_text(110, "Hover and press SPACE/ENTER", 13)
