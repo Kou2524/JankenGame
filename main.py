@@ -1,6 +1,7 @@
 import pyxel
 
 pyxel.init(160, 120, title="Janken Game", fps=30)
+pyxel.mouse(True)
 
 # 0: TITLE / 1: GAME / 2: HOW TO
 scene = 0
