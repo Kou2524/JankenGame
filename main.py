@@ -31,7 +31,7 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # ▼ PC版のマウスホバー反応を消す（ここコメントアウト）
+        # ▼ マウスホバーで選択変更はしない
         # for i, (_, x, y, w, h) in enumerate(MENU):
         #     if in_rect(mx, my, x, y, w, h):
         #         menu_idx = i
@@ -99,22 +99,12 @@ def draw():
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
-            # ▶ カーソル（白 / 右向き / 点滅）
+            # ▶ カーソル（テキストで表現 / 白 / 点滅）
             if hi:
-                # 点滅（10フレームON、10フレームOFF）
+                # 10フレームごとに点滅
                 if pyxel.frame_count % 20 < 10:
-                    cx = x - 6         # 枠の左
-                    cy1 = y + 2
-                    cy2 = y + h - 2
-                    cm = (cy1 + cy2) // 2
-
-                    # ▶ の三角形（tipが右側）
-                    pyxel.tri(
-                        cx + 4, cm,  # 先端（右）
-                        cx, cy1,     # 左上
-                        cx, cy2,     # 左下
-                        7            # 色：白
-                    )
+                    # 枠の左に ">" を描く
+                    pyxel.text(x - 8, y + 3, ">", 7)
 
         # 説明文
         draw_centered_text(110, "ARROW + ENTER / CLICK", 13)
