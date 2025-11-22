@@ -7,9 +7,9 @@ pyxel.mouse(True)
 scene = 0
 menu_idx = 0  # 選択中の項目（0: START, 1: HOW TO）
 
-# (表示名, x, y, w, h)
+# (表示名, x, y, w, h)  ← 枠サイズを統一
 MENU = [
-    ("START", 52, 70, 56, 12),
+    ("START", 48, 70, 64, 12),
     ("HOW TO", 48, 86, 64, 12),
 ]
 
@@ -31,12 +31,12 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # マウス位置でホバー反映
-        for i, (_, x, y, w, h) in enumerate(MENU):
-            if in_rect(mx, my, x, y, w, h):
-                menu_idx = i
+        # ▼ マウスでの「ホバー選択」はやめる（PC操作を弱める）
+        # for i, (_, x, y, w, h) in enumerate(MENU):
+        #     if in_rect(mx, my, x, y, w, h):
+        #         menu_idx = i
 
-        # ↑↓キーで選択移動
+        # ↑↓キーで選択移動（PC用）
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % len(MENU)
         if pyxel.btnp(pyxel.KEY_DOWN):
@@ -50,13 +50,13 @@ def update():
                 scene = 2  # HOW TO → 説明
 
         # クリック / タップで決定
+        # ※ PCとスマホどっちもここを通る（完全にPCだけ切ることはできない）
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             for i, (_, x, y, w, h) in enumerate(MENU):
                 if in_rect(mx, my, x, y, w, h):
-                    menu_idx = i
-                    if menu_idx == 0:
+                    if i == 0:
                         scene = 1  # START
-                    elif menu_idx == 1:
+                    elif i == 1:
                         scene = 2  # HOW TO
                     break
 
@@ -90,28 +90,24 @@ def draw():
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)  # 選択中？
 
-            if hi:
-                # 選択中だけ背景を明るく塗る
-                pyxel.rect(x, y, w, h, 1)  # 濃いめの色
-
             border_col = 10 if hi else 5  # 黄 or 青
             text_col = 7 if hi else 6
 
+            # 枠
             pyxel.rectb(x, y, w, h, border_col)
 
             # テキスト
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
-            # ▶ カーソル（左に表示）
+            # ▶ カーソル（選択中だけ左に表示）
             if hi:
-                # 三角カーソル
                 cx = x - 6
                 cy1 = y + 2
                 cy2 = y + h - 2
                 cm = (cy1 + cy2) // 2
                 pyxel.tri(
-                    cx, cm,      # 先っぽ
+                    cx, cm,      # 先端
                     cx + 4, cy1, # 上
                     cx + 4, cy2, # 下
                     10,          # 色（黄色）
