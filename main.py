@@ -37,7 +37,14 @@ def update():
             else:
                 scene = 2
 
+    # HOW TO 画面からタイトルに戻る処理も
+    if scene == 2:
+        if pyxel.btnp(pyxel.KEY_RETURN):
+            scene = 0
+
 def draw():
+    global scene  # ←★ これ追加！
+
     pyxel.cls(0)
 
     # タイトル画面
@@ -71,8 +78,5 @@ def draw():
     elif scene == 2:
         draw_centered_text(40, "HOW TO PLAY", 7)
         draw_centered_text(100, "ENTER TO BACK", 7)
-        if pyxel.btnp(pyxel.KEY_RETURN):
-            scene = 0
-
 
 pyxel.run(update, draw)
