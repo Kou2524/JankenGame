@@ -109,7 +109,7 @@ def draw():
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
                 
         #タイトル画面下部に表示する文章、現時点では"空白"にしてるよ
-        draw_centered_text(110, "", 13)
+        #draw_centered_text(110, "ARROW / GAMEPAD + ENTER / BUTTONS", 13)
 
     elif scene == 1:
         # ===== GAME画面（仮） =====
