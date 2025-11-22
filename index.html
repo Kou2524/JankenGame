@@ -4,25 +4,13 @@
     <meta charset="utf-8" />
     <title>Janken Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- Pyxel WASM -->
     <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
-
     <style>
       html, body {
         margin: 0;
-        padding: 0;
-        background: #000;
         height: 100%;
-        overflow: hidden;
+        background: #000;
       }
-
-      /* Pyxel を中央に表示 + ピクセル保持 + カーソル非表示 */
-      pyxel-run, canvas {
-        image-rendering: pixelated;
-        cursor: none !important;   /* ← カーソル非表示！ */
-      }
-
       #wrap {
         position: fixed;
         inset: 0;
@@ -30,14 +18,28 @@
         place-items: center;
         background: #000;
       }
+      pyxel-run, canvas {
+        image-rendering: pixelated;
+        cursor: none;  /* ← もうカーソル使わないならこちらがシンプル */
+      }
+      #hint {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: end center;
+        padding-bottom: 24px;
+        color: #bbb;
+        font: 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        user-select: none;
+        pointer-events: none;
+      }
     </style>
   </head>
 
   <body>
     <div id="wrap">
-      <!-- Pyxel の Python ファイルを読み込む -->
-      <!-- root="." は index.html と同じフォルダを参照 -->
       <pyxel-run root="." name="main.py"></pyxel-run>
+      <div id="hint">TAP PAGE TO PLAY BGM</div>
     </div>
   </body>
 </html>
