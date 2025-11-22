@@ -13,6 +13,9 @@ MENU = [
     ("HOW TO", 48, 86, 64, 12),
 ]
 
+def in_rect(mx, my, x, y, w, h):
+    return x <= mx < x + w and y <= my < y + h
+
 def draw_centered_text(y, text, col):
     text_w = len(text) * 4
     pyxel.text((160 - text_w) // 2, y, text, col)
@@ -20,25 +23,19 @@ def draw_centered_text(y, text, col):
 def update():
     global scene, menu_idx
 
-    # タイトル画面
     if scene == 0:
-        # 上下で選択移動
+        # キー操作（上下移動）
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % 2
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % 2
 
-        # ENTERで決定
+        # 決定キー
         if pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
-                scene = 1  # GAMEへ
+                scene = 1
             else:
-                scene = 2  # HOW TOへ
-
-    # HOW TO画面 → ENTERでタイトルへ戻る
-    elif scene == 2:
-        if pyxel.btnp(pyxel.KEY_RETURN):
-            scene = 0
+                scene = 2
 
 def draw():
     pyxel.cls(0)
@@ -55,8 +52,9 @@ def draw():
         pyxel.rectb(MENU[1][1], MENU[1][2], MENU[1][3], MENU[1][4], 5)
         draw_centered_text(MENU[1][2] + 4, "HOW TO", 7)
 
-        # ▶ 点滅（白）
+        # ▼ 白い▶を点滅表示
         blink = (pyxel.frame_count // 10) % 2 == 0
+
         if blink:
             if menu_idx == 0:
                 pyxel.text(MENU[0][1] - 10, MENU[0][2] + 4, "▶", 7)
@@ -65,13 +63,16 @@ def draw():
 
         pyxel.text(30, 110, "ARROW + ENTER", 7)
 
-    # GAME画面
+    # GAME
     elif scene == 1:
         draw_centered_text(60, "GAME START!", 7)
 
-    # HOW TO画面
+    # HOW TO
     elif scene == 2:
         draw_centered_text(40, "HOW TO PLAY", 7)
         draw_centered_text(100, "ENTER TO BACK", 7)
+        if pyxel.btnp(pyxel.KEY_RETURN):
+            scene = 0
+
 
 pyxel.run(update, draw)
