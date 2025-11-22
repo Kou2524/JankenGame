@@ -31,27 +31,26 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # ★ マウス位置でホバー反映（PC用）
+        # マウス位置でホバー反映
         for i, (_, x, y, w, h) in enumerate(MENU):
             if in_rect(mx, my, x, y, w, h):
                 menu_idx = i
 
-        # ★ ↑↓キーで選択移動（PC用）
+        # ↑↓キーで選択移動
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % len(MENU)
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % len(MENU)
 
-        # ★ キーボードで決定（SPACE / ENTER）
+        # SPACE / ENTER で決定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
                 scene = 1  # START → GAME
             elif menu_idx == 1:
                 scene = 2  # HOW TO → 説明
 
-        # ★ クリック / タップで決定
+        # クリック / タップで決定
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            # どのボタンの上を押したか調べる
             for i, (_, x, y, w, h) in enumerate(MENU):
                 if in_rect(mx, my, x, y, w, h):
                     menu_idx = i
@@ -59,11 +58,10 @@ def update():
                         scene = 1  # START
                     elif menu_idx == 1:
                         scene = 2  # HOW TO
-                    break  # 見つかったら抜ける
+                    break
 
     elif scene == 1:
         # ===== ゲーム画面（仮） =====
-        # SPACE / ENTER / クリック でタイトルに戻る
         if (
             pyxel.btnp(pyxel.KEY_SPACE)
             or pyxel.btnp(pyxel.KEY_RETURN)
@@ -86,20 +84,41 @@ def draw():
 
     if scene == 0:
         # ===== タイトル描画 =====
-        draw_centered_text(45, "JANKEN GAME", 7)
+        draw_centered_text(30, "JANKEN GAME", 7)
 
         # メニュー（START / HOW TO）
         for i, (label, x, y, w, h) in enumerate(MENU):
-            hi = (i == menu_idx)            # 選択中？
-            border_col = 10 if hi else 5    # 黄 or 青
+            hi = (i == menu_idx)  # 選択中？
+
+            if hi:
+                # 選択中だけ背景を明るく塗る
+                pyxel.rect(x, y, w, h, 1)  # 濃いめの色
+
+            border_col = 10 if hi else 5  # 黄 or 青
             text_col = 7 if hi else 6
 
             pyxel.rectb(x, y, w, h, border_col)
+
+            # テキスト
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
+            # ▶ カーソル（左に表示）
+            if hi:
+                # 三角カーソル
+                cx = x - 6
+                cy1 = y + 2
+                cy2 = y + h - 2
+                cm = (cy1 + cy2) // 2
+                pyxel.tri(
+                    cx, cm,      # 先っぽ
+                    cx + 4, cy1, # 上
+                    cx + 4, cy2, # 下
+                    10,          # 色（黄色）
+                )
+
         # 説明文
-        draw_centered_text(110, "Hover and press SPACE/ENTER", 13)
+        draw_centered_text(110, "ARROW + ENTER / CLICK", 13)
 
     elif scene == 1:
         # ===== GAME画面（仮） =====
