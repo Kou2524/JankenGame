@@ -107,15 +107,16 @@ def draw():
                 cy2 = y + h - 2
                 cm = (cy1 + cy2) // 2
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
-
-        draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
+                
+        #タイトル画面下部に表示する文章、現時点では"空白"にしてるよ
+        draw_centered_text(110, "", 13)
 
     elif scene == 1:
         # ===== GAME画面（仮） =====
         pyxel.cls(1)
         draw_centered_text(40, "GAME START!", 7)
         draw_centered_text(70, "Janken part is here", 7)
-        draw_centered_text(100, "Press ENTER/A/B/X/Y to back", 11)
+        draw_centered_text(100, "Press ENTER /BUTTONS to Back", 11)
 
     elif scene == 2:
         # ===== HOW TO 画面 =====
