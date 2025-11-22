@@ -1,146 +1,77 @@
 import pyxel
 
-# ゲーム画面を大きく表示（後で調整OK）
 pyxel.init(160, 120, title="Janken Game", fps=30)
 
-# 青いカーソルを消す
+# ▼ Pyxel 内部カーソルを非表示！
 pyxel.mouse(False)
 
-# ===== シーン管理 =====
-scene = 0          # 0: TITLE, 1: GAME, 2: HOW TO
-menu_idx = 0       # START / HOW TO の選択位置
+# 0: TITLE / 1: GAME / 2: HOW TO
+scene = 0
+menu_idx = 0  # 選択中の項目（0: START, 1: HOW TO）
 
-
-# ===== メニューの配置 =====
+# (表示名, x, y, w, h) ← 枠サイズを統一
 MENU = [
     ("START", 48, 70, 64, 12),
     ("HOW TO", 48, 86, 64, 12),
 ]
 
 
-# ===== 十字キーの中心座標 =====
-pad_cx = pyxel.width // 2
-pad_cy = pyxel.height - 25
-pad_size = 12   # ボタンの1辺のサイズ
+def in_rect(mx, my, x, y, w, h):
+    return x <= mx < x + w and y <= my < y + h
 
 
-# ======= 中央文字表示 =======
 def draw_centered_text(y, text, col):
     text_w = len(text) * 4
     x = (pyxel.width - text_w) // 2
     pyxel.text(x, y, text, col)
 
 
-# ======= 十字キーの描画 =======
-def draw_dpad():
-    col = 12  # 明るい青
-
-    # 上
-    pyxel.rect(pad_cx - pad_size//2, pad_cy - pad_size*2, pad_size, pad_size, col)
-    # 下
-    pyxel.rect(pad_cx - pad_size//2, pad_cy + pad_size, pad_size, pad_size, col)
-    # 左
-    pyxel.rect(pad_cx - pad_size*2, pad_cy - pad_size//2, pad_size, pad_size, col)
-    # 右
-    pyxel.rect(pad_cx + pad_size, pad_cy - pad_size//2, pad_size, pad_size, col)
-
-
-# ======= 十字キーの入力判定 =======
-def dpad_input():
-    mx, my = pyxel.mouse_x, pyxel.mouse_y
-
-    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-
-        # 上
-        if (pad_cx - pad_size//2 <= mx <= pad_cx + pad_size//2 and
-            pad_cy - pad_size*2 <= my <= pad_cy - pad_size):
-            return "up"
-
-        # 下
-        if (pad_cx - pad_size//2 <= mx <= pad_cx + pad_size//2 and
-            pad_cy + pad_size <= my <= pad_cy + pad_size*2):
-            return "down"
-
-        # 左
-        if (pad_cx - pad_size*2 <= mx <= pad_cx - pad_size and
-            pad_cy - pad_size//2 <= my <= pad_cy + pad_size//2):
-            return "left"
-
-        # 右
-        if (pad_cx + pad_size <= mx <= pad_cx + pad_size*2 and
-            pad_cy - pad_size//2 <= my <= pad_cy + pad_size//2):
-            return "right"
-
-    return None
-
-
-# ======= UPDATE =======
-player_x = 80
-player_y = 60
-
-
 def update():
     global scene, menu_idx
-    global player_x, player_y
 
     if scene == 0:
-        # ===== タイトル =====
-
+        # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # キー選択
+        # ▼ PC版マウスホバーで選択移動はしない（固定）
+        # for i, (_, x, y, w, h) in enumerate(MENU):
+        #     if in_rect(mx, my, x, y, w, h):
+        #         menu_idx = i
+
+        # ↑↓キーで選択移動（PC用）
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % len(MENU)
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % len(MENU)
 
-        # 決定
+        # SPACE / ENTER で決定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
-            scene = 1 if menu_idx == 0 else 2
-
-        # タップ判定（ゆるくY判断）
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            if 70 <= my < 82:
+            if menu_idx == 0:
                 scene = 1
-            elif 86 <= my < 98:
+            elif menu_idx == 1:
+                scene = 2
+
+        # クリック / タップで決定（PC / スマホ共通）
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            # ボタン位置タップ判定を「Yだけ」でゆるくとる
+            if 70 <= my < 82:    # START 行付近
+                menu_idx = 0
+                scene = 1
+            elif 86 <= my < 98:  # HOW TO 行付近
+                menu_idx = 1
                 scene = 2
 
     elif scene == 1:
-        # ===== ゲーム画面 =====
-
-        # 十字キーの入力
-        d = dpad_input()
-
-        if d == "up":
-            player_y -= 1
-        elif d == "down":
-            player_y += 1
-        elif d == "left":
-            player_x -= 1
-        elif d == "right":
-            player_x += 1
-
-        # PC操作（矢印キーでも動かす）
-        if pyxel.btn(pyxel.KEY_UP):
-            player_y -= 1
-        if pyxel.btn(pyxel.KEY_DOWN):
-            player_y += 1
-        if pyxel.btn(pyxel.KEY_LEFT):
-            player_x -= 1
-        if pyxel.btn(pyxel.KEY_RIGHT):
-            player_x += 1
-
-        # タイトルに戻る
+        # ===== ゲーム画面（仮） =====
         if (
             pyxel.btnp(pyxel.KEY_SPACE)
             or pyxel.btnp(pyxel.KEY_RETURN)
             or pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
-            and my < 30  # 画面上部タップで戻る
         ):
             scene = 0
 
     elif scene == 2:
-        # ===== HOW TO =====
+        # ===== HOW TO 画面 =====
         if (
             pyxel.btnp(pyxel.KEY_SPACE)
             or pyxel.btnp(pyxel.KEY_RETURN)
@@ -149,51 +80,57 @@ def update():
             scene = 0
 
 
-# ======= DRAW =======
 def draw():
     pyxel.cls(0)
 
     if scene == 0:
-        # ===== タイトル画面 =====
+        # ===== タイトル描画 =====
         draw_centered_text(30, "JANKEN GAME", 7)
 
+        # メニュー描画（START / HOW TO）
         for i, (label, x, y, w, h) in enumerate(MENU):
-            hi = i == menu_idx
+            hi = (i == menu_idx)  # 選択中？
 
-            border_col = 10 if hi else 5
-            text_col = 7 if hi else 6
+            border_col = 10 if hi else 5  # 黄 or 青
+            text_col  = 7 if hi else 6     # 白 or 灰
 
+            # 枠線
             pyxel.rectb(x, y, w, h, border_col)
+
+            # ラベル文字
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
-            # ▶ カーソル（点滅）
-            if hi and pyxel.frame_count % 20 < 10:
-                cx = x - 6
-                cy1 = y + 2
-                cy2 = y + h - 2
-                cm = (cy1 + cy2) // 2
-                pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
+            # ▶ カーソル（白・右向き・点滅）
+            if hi:
+                # 点滅（10フレーム ON → 10フレーム OFF）
+                if pyxel.frame_count % 20 < 10:
+                    cx = x - 6
+                    cy1 = y + 2
+                    cy2 = y + h - 2
+                    cm = (cy1 + cy2) // 2
 
+                    pyxel.tri(
+                        cx + 4, cm,  # 先端（右）
+                        cx,     cy1, # 左上
+                        cx,     cy2, # 左下
+                        7            # 色：白
+                    )
+
+        # 説明文
         draw_centered_text(110, "ARROW + ENTER / CLICK", 13)
 
     elif scene == 1:
-        # ===== ゲーム画面 =====
         pyxel.cls(1)
-
-        # プレイヤーキャラ
-        pyxel.circ(player_x, player_y, 4, 8)
-
-        # 十字キー
-        draw_dpad()
-
-        draw_centered_text(5, "GAME SCREEN", 7)
+        draw_centered_text(40, "GAME START!", 7)
+        draw_centered_text(70, "Janken part is here", 7)
+        draw_centered_text(100, "Press SPACE/CLICK to back", 11)
 
     elif scene == 2:
-        # ===== HOW TO =====
+        pyxel.cls(0)
         draw_centered_text(20, "HOW TO PLAY", 10)
-        pyxel.text(10, 50, "- Use DPAD or keys", 7)
-        pyxel.text(10, 60, "- Move player", 7)
+        pyxel.text(10, 50, "- Select ROCK / SCISSORS / PAPER", 7)
+        pyxel.text(10, 60, "- Win 3 times to clear", 7)
         pyxel.text(10, 80, "Press SPACE/CLICK to TITLE", 13)
 
 
