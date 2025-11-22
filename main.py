@@ -2,7 +2,7 @@ import pyxel
 
 pyxel.init(160, 120, title="Janken Game", fps=30)
 
-# ▼ Pyxel 内部カーソルを非表示！
+# ▼ Pyxel 内部カーソルを非表示！！
 pyxel.mouse(False)
 
 # 0: TITLE / 1: GAME / 2: HOW TO
