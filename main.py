@@ -31,7 +31,7 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # ▼ PC版のマウスホバー反応を消す（ここコメントアウト）
+        # ▼ PC版のマウスホバー反応を消す（ここコメントアウトのまま）
         # for i, (_, x, y, w, h) in enumerate(MENU):
         #     if in_rect(mx, my, x, y, w, h):
         #         menu_idx = i
@@ -42,7 +42,7 @@ def update():
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % len(MENU)
 
-        # SPACE / ENTER で決定
+        # SPACE / ENTER で決定（PC用）
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
                 scene = 1
@@ -51,13 +51,14 @@ def update():
 
         # クリック / タップで決定（PC / スマホ共通）
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            for i, (_, x, y, w, h) in enumerate(MENU):
-                if in_rect(mx, my, x, y, w, h):
-                    if i == 0:
-                        scene = 1
-                    elif i == 1:
-                        scene = 2
-                    break
+            # スマホでも押しやすいように、
+            # X座標は無視して「Yの位置」だけでどっちのボタンか判定する
+            if 70 <= my < 82:  # START 行付近
+                menu_idx = 0
+                scene = 1
+            elif 86 <= my < 98:  # HOW TO 行付近
+                menu_idx = 1
+                scene = 2
 
     elif scene == 1:
         # ===== ゲーム画面（仮） =====
@@ -111,8 +112,8 @@ def draw():
                     # ▶ の三角形（tipが右側）
                     pyxel.tri(
                         cx + 4, cm,  # 先端（右）
-                        cx, cy1,     # 左上
-                        cx, cy2,     # 左下
+                        cx,     cy1, # 左上
+                        cx,     cy2, # 左下
                         7            # 色：白
                     )
 
