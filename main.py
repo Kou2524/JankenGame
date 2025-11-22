@@ -1,7 +1,7 @@
 import pyxel
 
 # ゲーム画面を大きく表示（後で調整OK）
-pyxel.init(160, 120, title="Janken Game", fps=30, display_scale=4)
+pyxel.init(160, 120, title="Janken Game", fps=30)
 
 # 青いカーソルを消す
 pyxel.mouse(False)
