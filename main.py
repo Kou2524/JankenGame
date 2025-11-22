@@ -100,18 +100,22 @@ def draw():
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
-            # ▶ カーソル（選択中だけ左に表示）
+            # ▶ カーソル（選択中だけ左に表示・点滅・白色）
             if hi:
-                cx = x - 6
-                cy1 = y + 2
-                cy2 = y + h - 2
-                cm = (cy1 + cy2) // 2
-                pyxel.tri(
-                    cx, cm,      # 先端
-                    cx + 4, cy1, # 上
-                    cx + 4, cy2, # 下
-                    10,          # 色（黄色）
-                )
+                # 点滅：10フレームON, 10フレームOFF
+                if pyxel.frame_count % 20 < 10:
+                    cx = x - 6          # 左端（枠のちょい左）
+                    cy1 = y + 2
+                    cy2 = y + h - 2
+                    cm = (cy1 + cy2) // 2
+
+                    # ▶ 向き：右向きになるように tip を右側にする
+                    pyxel.tri(
+                        cx + 4, cm,  # 先端（右側・枠の方向）
+                        cx,     cy1, # 左上
+                        cx,     cy2, # 左下
+                        7,           # 色：白
+                    )
 
         # 説明文
         draw_centered_text(110, "ARROW + ENTER / CLICK", 13)
@@ -130,6 +134,7 @@ def draw():
         pyxel.text(10, 50, "- Select ROCK / SCISSORS / PAPER", 7)
         pyxel.text(10, 60, "- Win 3 times to clear", 7)
         pyxel.text(10, 80, "Press SPACE/CLICK to TITLE", 13)
+
 
 
 pyxel.run(update, draw)
