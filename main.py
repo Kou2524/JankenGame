@@ -7,7 +7,7 @@ pyxel.mouse(True)
 scene = 0
 menu_idx = 0  # 選択中の項目（0: START, 1: HOW TO）
 
-# (表示名, x, y, w, h)  ← 枠サイズを統一
+# (表示名, x, y, w, h) ← 枠サイズを統一
 MENU = [
     ("START", 48, 70, 64, 12),
     ("HOW TO", 48, 86, 64, 12),
@@ -31,7 +31,7 @@ def update():
         # ===== タイトル画面 =====
         mx, my = pyxel.mouse_x, pyxel.mouse_y
 
-        # ▼ マウスでの「ホバー選択」はやめる（PC操作を弱める）
+        # ▼ PC版のマウスホバー反応を消す（ここコメントアウト）
         # for i, (_, x, y, w, h) in enumerate(MENU):
         #     if in_rect(mx, my, x, y, w, h):
         #         menu_idx = i
@@ -45,19 +45,18 @@ def update():
         # SPACE / ENTER で決定
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
-                scene = 1  # START → GAME
+                scene = 1
             elif menu_idx == 1:
-                scene = 2  # HOW TO → 説明
+                scene = 2
 
-        # クリック / タップで決定
-        # ※ PCとスマホどっちもここを通る（完全にPCだけ切ることはできない）
+        # クリック / タップで決定（PC / スマホ共通）
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             for i, (_, x, y, w, h) in enumerate(MENU):
                 if in_rect(mx, my, x, y, w, h):
                     if i == 0:
-                        scene = 1  # START
+                        scene = 1
                     elif i == 1:
-                        scene = 2  # HOW TO
+                        scene = 2
                     break
 
     elif scene == 1:
@@ -86,35 +85,35 @@ def draw():
         # ===== タイトル描画 =====
         draw_centered_text(30, "JANKEN GAME", 7)
 
-        # メニュー（START / HOW TO）
+        # メニュー描画（START / HOW TO）
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)  # 選択中？
 
             border_col = 10 if hi else 5  # 黄 or 青
-            text_col = 7 if hi else 6
+            text_col = 7 if hi else 6      # 白 or 灰
 
-            # 枠
+            # 枠線
             pyxel.rectb(x, y, w, h, border_col)
 
-            # テキスト
+            # ラベル文字
             tx = x + (w - len(label) * 4) // 2
             pyxel.text(tx, y + 3, label, text_col)
 
-            # ▶ カーソル（選択中だけ左に表示・点滅・白色）
+            # ▶ カーソル（白 / 右向き / 点滅）
             if hi:
-                # 点滅：10フレームON, 10フレームOFF
+                # 点滅（10フレームON、10フレームOFF）
                 if pyxel.frame_count % 20 < 10:
-                    cx = x - 6          # 左端（枠のちょい左）
+                    cx = x - 6         # 枠の左
                     cy1 = y + 2
                     cy2 = y + h - 2
                     cm = (cy1 + cy2) // 2
 
-                    # ▶ 向き：右向きになるように tip を右側にする
+                    # ▶ の三角形（tipが右側）
                     pyxel.tri(
-                        cx + 4, cm,  # 先端（右側・枠の方向）
-                        cx,     cy1, # 左上
-                        cx,     cy2, # 左下
-                        7,           # 色：白
+                        cx + 4, cm,  # 先端（右）
+                        cx, cy1,     # 左上
+                        cx, cy2,     # 左下
+                        7            # 色：白
                     )
 
         # 説明文
@@ -134,7 +133,6 @@ def draw():
         pyxel.text(10, 50, "- Select ROCK / SCISSORS / PAPER", 7)
         pyxel.text(10, 60, "- Win 3 times to clear", 7)
         pyxel.text(10, 80, "Press SPACE/CLICK to TITLE", 13)
-
 
 
 pyxel.run(update, draw)
