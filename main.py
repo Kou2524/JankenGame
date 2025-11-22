@@ -7,14 +7,10 @@ pyxel.mouse(False)
 scene = 0
 menu_idx = 0  # 0: START, 1: HOW TO
 
-# (表示名, x, y, w, h)
 MENU = [
     ("START", 52, 70, 56, 12),
     ("HOW TO", 48, 86, 64, 12),
 ]
-
-def in_rect(mx, my, x, y, w, h):
-    return x <= mx < x + w and y <= my < y + h
 
 def draw_centered_text(y, text, col):
     text_w = len(text) * 4
@@ -23,31 +19,30 @@ def draw_centered_text(y, text, col):
 def update():
     global scene, menu_idx
 
+    # タイトル画面
     if scene == 0:
-        # キー操作（上下移動）
         if pyxel.btnp(pyxel.KEY_UP):
             menu_idx = (menu_idx - 1) % 2
         if pyxel.btnp(pyxel.KEY_DOWN):
             menu_idx = (menu_idx + 1) % 2
 
-        # 決定キー
         if pyxel.btnp(pyxel.KEY_RETURN):
             if menu_idx == 0:
                 scene = 1
             else:
                 scene = 2
 
-    # HOW TO 画面からタイトルに戻る処理も
+    # HOW TO → ENTERで戻る
     if scene == 2:
         if pyxel.btnp(pyxel.KEY_RETURN):
             scene = 0
 
 def draw():
-    global scene  # ←★ これ追加！
+    global scene
 
     pyxel.cls(0)
 
-    # タイトル画面
+    # タイトル
     if scene == 0:
         draw_centered_text(30, "JANKEN GAME", 7)
 
@@ -59,9 +54,8 @@ def draw():
         pyxel.rectb(MENU[1][1], MENU[1][2], MENU[1][3], MENU[1][4], 5)
         draw_centered_text(MENU[1][2] + 4, "HOW TO", 7)
 
-        # ▼ 白い▶を点滅表示
+        # 点滅▶
         blink = (pyxel.frame_count // 10) % 2 == 0
-
         if blink:
             if menu_idx == 0:
                 pyxel.text(MENU[0][1] - 10, MENU[0][2] + 4, "▶", 7)
