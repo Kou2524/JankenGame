@@ -32,6 +32,16 @@ MENU = [
 ]
 
 # ===== ゲーム状態 =====
+# 0: Janken game begins!
+# 1: Which hand should I play?
+# 2: 手の選択
+# 3: Are you ready?
+# 4: 1,2,3!
+# 6: You win!
+# 7: You lose...
+# 8: Continue?
+# 9: YES / NO 選択
+# 10: One more time!
 game_phase = 0
 phase_timer = 0
 
@@ -44,7 +54,8 @@ hand_cursor = 0
 continue_cursor = 0
 
 win_streak = 0          # 連勝数
-show_win_streak = False # 右上の WIN 表示フラグ
+show_win_streak = False # WIN/SCORE を表示するか
+score = 0               # スコア
 
 HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 
@@ -84,6 +95,9 @@ def is_right_pressed():
 
 
 def reset_game():
+    """
+    ゲーム開始時に状態をリセット（連勝はリセットしない）
+    """
     global game_phase, phase_timer, player_hand, cpu_hand
     global result, hand_cursor, continue_cursor, result_decided
     global show_win_streak
@@ -96,7 +110,29 @@ def reset_game():
     hand_cursor = 0
     continue_cursor = 0
     result_decided = False
+    show_win_streak = False  # 最初は非表示
+
+
+def reset_streak_and_score():
+    """
+    タイトルに戻るときなどに、連勝とスコアもリセット
+    """
+    global win_streak, score, show_win_streak
+    win_streak = 0
+    score = 0
     show_win_streak = False
+
+
+def update_score():
+    """
+    連勝数からスコアを計算
+    1連勝=2000, 2連勝=4000, 3連勝=8000,...  2000 * 2^(win_streak-1)
+    """
+    global score
+    if win_streak <= 0:
+        score = 0
+    else:
+        score = 2000 * (2 ** (win_streak - 1))
 
 
 def draw_next_indicator(panel_x, panel_y, panel_w):
@@ -113,7 +149,8 @@ def draw_next_indicator(panel_x, panel_y, panel_w):
 def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
-    global hand_cursor, continue_cursor, result_decided, win_streak, show_win_streak
+    global hand_cursor, continue_cursor, result_decided
+    global win_streak, show_win_streak
 
     # BGM切り替え
     if scene != last_scene:
@@ -124,7 +161,7 @@ def update():
     # TITLE
     # ================================
     if scene == 0:
-        # ⬆⬇ 入力（キーボード + ゲームパッド両方）
+        # ⬆⬇ 入力（キーボード + ゲームパッド）
         if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
             if menu_idx > 0:
                 menu_idx -= 1
@@ -135,11 +172,11 @@ def update():
 
         # 決定
         if is_ok_pressed():
-            if menu_idx == 0:
-                win_streak = 0
+            if menu_idx == 0:  # START
+                reset_streak_and_score()  # タイトルから始めるときは毎回リセット
                 reset_game()
                 scene = 1
-            else:
+            else:              # HOW TO
                 scene = 2
 
     # ================================
@@ -190,25 +227,27 @@ def update():
 
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
-                    game_phase = 10
+                    game_phase = 10  # あいこ
                 elif result == 1:
+                    # 勝ち → 連勝数アップ & スコア更新
                     win_streak += 1
+                    update_score()
                     game_phase = 6
                 else:
-                    win_streak = 0
+                    # 負け → 連勝&スコアリセット
+                    reset_streak_and_score()
                     game_phase = 7
                 phase_timer = 0
 
         elif game_phase == 6:
-            # 勝ち → 連勝表示ON
+            # 勝った画面 → 連勝表示ON（スコアも一緒に）
             show_win_streak = True
             if is_ok_pressed():
                 game_phase = 8
                 phase_timer = 0
 
         elif game_phase == 7:
-            # 負け → タイトルへ & 連勝リセット表示OFF
-            show_win_streak = False
+            # 負け → タイトルへ
             if is_ok_pressed():
                 scene = 0
 
@@ -225,13 +264,13 @@ def update():
 
             if is_ok_pressed():
                 if continue_cursor == 0:
-                    # 続ける → 連勝維持
+                    # YES → 連勝＆スコア維持で続き
                     game_phase = 1
                     phase_timer = 0
                     result_decided = False
                 else:
-                    # タイトル → 表示OFF
-                    show_win_streak = False
+                    # NO → タイトルへ & 連勝/スコアリセット
+                    reset_streak_and_score()
                     scene = 0
 
         elif game_phase == 10:
@@ -261,10 +300,15 @@ def draw_game():
 
     msg_y = panel_y + panel_h // 2 - 3
 
-    # 右上 WIN 表示
+    # 右上 WIN / SCORE 表示
     if show_win_streak and win_streak > 0:
-        txt = f"WIN {win_streak}"
-        pyxel.text(SCREEN_W - len(txt) * 4 - 4, 4, txt, 10)  # 10 = 黄色っぽい色
+        win_txt = f"WIN {win_streak}"
+        win_x = SCREEN_W - len(win_txt) * 4 - 4
+        pyxel.text(win_x, 4, win_txt, 10)  # 黄色っぽい色
+
+        score_txt = f"SCORE {score}"
+        score_x = SCREEN_W - len(score_txt) * 4 - 4
+        pyxel.text(score_x, 12, score_txt, 7)
 
     # ====== 各フェーズ ======
     if game_phase == 0:
