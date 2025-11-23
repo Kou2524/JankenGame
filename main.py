@@ -106,13 +106,16 @@ def reset_game() -> None:
 
 def draw_next_indicator(panel_y: int) -> None:
     """
-    枠の右下に ▼ を点滅表示。
-    1秒周期（30フレーム）で ON / OFF 切り替え。
+    枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
     if (pyxel.frame_count % 30) < 15:
-        px = SCREEN_W - 10
-        py = panel_y + 20
-        pyxel.text(px, py, "▼", 7)
+        cx = SCREEN_W - 10     # 右端
+        base_y = panel_y + 27  # パネル下の位置
+        top_y = base_y - 3     # 三角の頂点
+
+        # 小さい▼三角（幅3px）
+        pyxel.tri(cx, top_y, cx - 2, base_y, cx + 2, base_y, 7)
+
 
 
 # ------------------------------
