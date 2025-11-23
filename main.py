@@ -104,6 +104,17 @@ def reset_game() -> None:
     set_bgm_scene(1)  # 必要なら GAME 用BGM
 
 
+def draw_next_indicator(panel_y: int) -> None:
+    """
+    枠の右下に ▼ を点滅表示。
+    1秒周期（30フレーム）で ON / OFF 切り替え。
+    """
+    if (pyxel.frame_count % 30) < 15:
+        px = SCREEN_W - 10
+        py = panel_y + 20
+        pyxel.text(px, py, "▼", 7)
+
+
 # ------------------------------
 # UPDATE
 # ------------------------------
@@ -264,12 +275,14 @@ def draw_game():
 
     if game_phase == 0:
         draw_centered_text(msg_y, "Janken game begins!", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 1:
         draw_centered_text(msg_y, "Which hand should I play?", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 2:
-        # 手の選択肢だけ表示（Rock Paper Scissors の文字は消す）
+        # 手の選択肢だけ表示
         slot_w = 40
         start_x = (SCREEN_W - slot_w * 3) // 2
 
@@ -288,6 +301,7 @@ def draw_game():
 
     elif game_phase == 3:
         draw_centered_text(msg_y, "Are you ready?", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 4:
         # 1,2,3! の表示（0.6秒＝18フレーム間隔）
@@ -301,12 +315,15 @@ def draw_game():
 
     elif game_phase == 6:
         draw_centered_text(msg_y, "You win!", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 7:
         draw_centered_text(msg_y, "You lose...", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 8:
         draw_centered_text(msg_y, "Continue?", 7)
+        draw_next_indicator(panel_y)
 
     elif game_phase == 9:
         # YES / NO 選択（枠を広げて収める）
@@ -331,6 +348,7 @@ def draw_game():
 
     elif game_phase == 10:
         draw_centered_text(msg_y, "One more time!", 7)
+        draw_next_indicator(panel_y)
 
 
 # ------------------------------
@@ -368,8 +386,8 @@ def draw():
         # ===== HOW TO =====
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
-        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
+        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
+        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
 
 
 pyxel.run(update, draw)
