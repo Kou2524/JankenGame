@@ -128,14 +128,14 @@ def draw():
         # ===== GAME（中身はあとで作る） =====
         pyxel.cls(1)
         draw_centered_text(40, "GAME SCREEN", 7)
-        draw_centered_text(100, "Press ENTER/A/B/X/Y to TITLE", 11)
+        draw_centered_text(100, "Press ENTER / BUTTONS to TITLE", 11)
 
     elif scene == 2:
         # ===== HOW TO =====
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
-        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
+        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
+        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
 
 
 # 最初のシーンも一応通知しておく
