@@ -138,7 +138,7 @@ def update():
         elif scene == 1:
             set_bgm_scene(1)  # ゲーム用BGM
         elif scene == 2:
-            set_bgm_scene(2)  # HOW TO用BGM（なければ 0 や 1 にしてOK）
+            set_bgm_scene(0)  # HOW TO用BGM タイトルと同じでOKなら0にする
         last_scene = scene
 
     # 0: TITLE
