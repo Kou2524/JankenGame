@@ -43,8 +43,8 @@ result_decided = False
 hand_cursor = 0
 continue_cursor = 0
 
-win_streak = 0
-show_win_streak = False
+win_streak = 0          # 連勝数
+show_win_streak = False # 右上の WIN 表示フラグ
 
 HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 
@@ -70,11 +70,17 @@ def is_ok_pressed():
 
 
 def is_left_pressed():
-    return pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+    return (
+        pyxel.btnp(pyxel.KEY_LEFT)
+        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
+    )
 
 
 def is_right_pressed():
-    return pyxel.btnp(pyxel.KEY_RIGHT) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+    return (
+        pyxel.btnp(pyxel.KEY_RIGHT)
+        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
+    )
 
 
 def reset_game():
@@ -94,6 +100,7 @@ def reset_game():
 
 
 def draw_next_indicator(panel_x, panel_y, panel_w):
+    # 枠右下の小さい▼
     if pyxel.frame_count % 30 < 15:
         cx = panel_x + panel_w - 8
         top_y = panel_y + 22
@@ -117,13 +124,16 @@ def update():
     # TITLE
     # ================================
     if scene == 0:
-        if pyxel.btnp(pyxel.KEY_UP):
+        # ⬆⬇ 入力（キーボード + ゲームパッド両方）
+        if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
             if menu_idx > 0:
                 menu_idx -= 1
-        if pyxel.btnp(pyxel.KEY_DOWN):
+
+        if pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):
             if menu_idx < len(MENU) - 1:
                 menu_idx += 1
 
+        # 決定
         if is_ok_pressed():
             if menu_idx == 0:
                 win_streak = 0
@@ -166,17 +176,16 @@ def update():
                 result_decided = False
 
         elif game_phase == 4:
+            # 1,2,3!
             if phase_timer >= 42 and not result_decided:
                 cpu_hand = pyxel.rndi(0, 2)
                 diff = (player_hand - cpu_hand + 3) % 3
-
                 if diff == 0:
                     result = 0
                 elif diff == 1:
                     result = 1
                 else:
                     result = -1
-
                 result_decided = True
 
             if phase_timer >= 63 and is_ok_pressed():
@@ -188,16 +197,17 @@ def update():
                 else:
                     win_streak = 0
                     game_phase = 7
-
                 phase_timer = 0
 
         elif game_phase == 6:
+            # 勝ち → 連勝表示ON
             show_win_streak = True
             if is_ok_pressed():
                 game_phase = 8
                 phase_timer = 0
 
         elif game_phase == 7:
+            # 負け → タイトルへ & 連勝リセット表示OFF
             show_win_streak = False
             if is_ok_pressed():
                 scene = 0
@@ -215,10 +225,12 @@ def update():
 
             if is_ok_pressed():
                 if continue_cursor == 0:
+                    # 続ける → 連勝維持
                     game_phase = 1
                     phase_timer = 0
                     result_decided = False
                 else:
+                    # タイトル → 表示OFF
                     show_win_streak = False
                     scene = 0
 
@@ -252,7 +264,7 @@ def draw_game():
     # 右上 WIN 表示
     if show_win_streak and win_streak > 0:
         txt = f"WIN {win_streak}"
-        pyxel.text(SCREEN_W - len(txt) * 4 - 4, 4, txt, 10)
+        pyxel.text(SCREEN_W - len(txt) * 4 - 4, 4, txt, 10)  # 10 = 黄色っぽい色
 
     # ====== 各フェーズ ======
     if game_phase == 0:
@@ -339,9 +351,12 @@ def draw():
 
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)
-            pyxel.rectb(x, y, w, h, 10 if hi else 5)
+            border_col = 10 if hi else 5
+            text_col = 7 if hi else 6
+
+            pyxel.rectb(x, y, w, h, border_col)
             tx = x + (w - len(label) * 4) // 2
-            pyxel.text(tx, y + 3, label, 7 if hi else 6)
+            pyxel.text(tx, y + 3, label, text_col)
 
             if hi and pyxel.frame_count % 20 < 10:
                 cx = x - 6
