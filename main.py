@@ -31,7 +31,6 @@ MENU = [
 ]
 
 # ===== GAME 用の状態管理 =====
-# ゲーム内フェーズ
 # 0: Janken game begins!
 # 1: Which hand should I play?
 # 2: 手の選択
@@ -61,17 +60,13 @@ HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 # ------------------------------
 # ヘルパー
 # ------------------------------
-def in_rect(mx, my, x, y, w, h):
-    return x <= mx < x + w and y <= my < y + h
-
-
-def draw_centered_text(y, text, col):
+def draw_centered_text(y: int, text: str, col: int) -> None:
     text_w = len(text) * 4
     x = (SCREEN_W - text_w) // 2
     pyxel.text(x, y, text, col)
 
 
-def is_ok_pressed():
+def is_ok_pressed() -> bool:
     # A / B / X / Y / ENTER / SPACE
     return (
         pyxel.btnp(pyxel.KEY_RETURN)
@@ -83,21 +78,21 @@ def is_ok_pressed():
     )
 
 
-def is_left_pressed():
+def is_left_pressed() -> bool:
     return (
         pyxel.btnp(pyxel.KEY_LEFT)
         or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT)
     )
 
 
-def is_right_pressed():
+def is_right_pressed() -> bool:
     return (
         pyxel.btnp(pyxel.KEY_RIGHT)
         or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT)
     )
 
 
-def reset_game():
+def reset_game() -> None:
     global game_phase, phase_timer, player_hand, cpu_hand, result, hand_cursor, continue_cursor
     game_phase = 0
     phase_timer = 0
@@ -123,7 +118,7 @@ def update():
 
     # 0: TITLE
     if scene == 0:
-        # キーボード／ゲームパッドでメニュー移動（上下、ループなし）
+        # メニュー移動（上下、ループなし）
         if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
             if menu_idx > 0:
                 menu_idx -= 1
@@ -144,7 +139,6 @@ def update():
     elif scene == 1:
         phase_timer += 1
 
-        # それぞれのフェーズごとの入力処理
         if game_phase == 0:
             # 「Janken game begins!」
             if is_ok_pressed():
@@ -159,12 +153,10 @@ def update():
 
         elif game_phase == 2:
             # 手の選択
-            if is_left_pressed():
-                if hand_cursor > 0:
-                    hand_cursor -= 1
-            if is_right_pressed():
-                if hand_cursor < 2:
-                    hand_cursor += 1
+            if is_left_pressed() and hand_cursor > 0:
+                hand_cursor -= 1
+            if is_right_pressed() and hand_cursor < 2:
+                hand_cursor += 1
 
             if is_ok_pressed():
                 player_hand = hand_cursor
@@ -179,7 +171,7 @@ def update():
 
         elif game_phase == 4:
             # 「1, 2, 3!」
-            # 表示は draw 側で、入力可能になるのは少し待ってから
+            # 表示は draw 側で、一定時間経過後にOK受付
             # 0.6sごと → 18フレーム（fps=30）
             # 3! のあと 1秒(30フレーム)待ってからOK
             ready_frame = 18 * 3 + 30  # 84フレーム
@@ -189,10 +181,8 @@ def update():
 
         elif game_phase == 5:
             # 結果計算 → 即分岐
-            # CPU の手をランダムに決定
             cpu_hand = pyxel.rndi(0, 2)
 
-            # じゃんけん判定
             # (player - cpu + 3) % 3
             # 0: あいこ, 1: 勝ち, 2: 負け
             diff = (player_hand - cpu_hand + 3) % 3
@@ -221,7 +211,7 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 8:
-            # 「Continue?」
+            # 「Continue?」→ ボタンで YES/NO 選択へ
             if is_ok_pressed():
                 game_phase = 9
                 phase_timer = 0
@@ -255,18 +245,18 @@ def update():
 
 
 # ------------------------------
-# DRAW
+# DRAW (GAME)
 # ------------------------------
 def draw_game():
     # 下パネルの高さを少し広げる
-    panel_h = 32                 # ← 前は 24
+    panel_h = 32
     panel_y = SCREEN_H - panel_h
 
     # 下パネル
     pyxel.rect(0, panel_y, SCREEN_W, panel_h, 1)    # 中
     pyxel.rectb(0, panel_y, SCREEN_W, panel_h, 7)   # 枠
 
-    # 上側（ゲームエリア）はとりあえずタイトルだけ
+    # 上側（ゲームエリア）仮タイトル
     draw_centered_text(30, "JANKEN GAME", 7)
 
     # 下パネル内のベースY
@@ -316,7 +306,6 @@ def draw_game():
         draw_centered_text(msg_y, "You lose...", 7)
 
     elif game_phase == 8:
-        # 負けた直後の「Continue?」(確認だけ)
         draw_centered_text(msg_y, "Continue?", 7)
 
     elif game_phase == 9:
@@ -344,7 +333,9 @@ def draw_game():
         draw_centered_text(msg_y, "One more time!", 7)
 
 
-
+# ------------------------------
+# DRAW (ALL)
+# ------------------------------
 def draw():
     pyxel.cls(0)
 
@@ -369,9 +360,6 @@ def draw():
                 cm = (cy1 + cy2) // 2
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
 
-        # タイトル下部の説明は必要なら復活させてね
-        # draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
-
     elif scene == 1:
         # ===== GAME =====
         draw_game()
@@ -380,8 +368,8 @@ def draw():
         # ===== HOW TO =====
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
-        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
+        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
+        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
 
 
 pyxel.run(update, draw)
