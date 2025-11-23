@@ -189,8 +189,8 @@ def update():
 
         elif game_phase == 4:
             # 「1, 2, 3!」
-            # 0〜17: 1, 18〜35: 2, 36〜: 3!
-            # 3! が出てから21フレーム後（=63〜）にOK押せる
+            # 0〜20: 1, 21〜41: 2, 42〜: 3!
+            # 3! が出てから0.7秒後（=63〜）にOK押せる
             if phase_timer >= 63 and is_ok_pressed():
                 game_phase = 5
                 phase_timer = 0
@@ -275,38 +275,39 @@ def draw_game():
     # 上側（ゲームエリア）仮タイトル
     draw_centered_text(30, "JANKEN GAME", 7)
 
-    # 下パネル内のベースY
-    msg_y = panel_y + 6
+    # 枠のちょうど中央に来るY（文字高さ6px前提）
+    msg_center_y = panel_y + panel_h // 2 - 3
 
     if game_phase == 0:
-        draw_centered_text(msg_y, "Janken game begins!", 7)
+        draw_centered_text(msg_center_y, "Janken game begins!", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 1:
-        draw_centered_text(msg_y, "Which hand should I play?", 7)
+        draw_centered_text(msg_center_y, "Which hand should I play?", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 2:
-        # 手の選択肢だけ表示
+        # 手の選択肢：1行まるごと中央揃え
         slot_w = 40
         start_x = (SCREEN_W - slot_w * 3) // 2
 
         for i, label in enumerate(HAND_LABELS):
             x = start_x + i * slot_w
             text_x = x + (slot_w - len(label) * 4) // 2
-            pyxel.text(text_x, msg_y + 4, label, 7)
+            label_y = msg_center_y
+            pyxel.text(text_x, label_y, label, 7)
 
             # 選択中に三角カーソル（点滅・3px幅）
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキストとの隙間4px
                 base_x = tip_x - 3      # 横幅3px
-                cy = msg_y + 7          # 縦の中心
+                cy = label_y + 3        # テキストの縦中央
 
                 # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 3:
-        draw_centered_text(msg_y, "Are you ready?", 7)
+        draw_centered_text(msg_center_y, "Are you ready?", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 4:
@@ -317,47 +318,49 @@ def draw_game():
             text = "2"
         else:
             text = "3!"
-        draw_centered_text(msg_y, text, 7)
+        draw_centered_text(msg_center_y, text, 7)
 
-        # 3! が出てから21フレーム後に ▼ 点滅開始
+        # 3! が出てから0.7秒後に ▼ 点滅開始
         if phase_timer >= 63:
             draw_next_indicator(panel_y)
 
     elif game_phase == 6:
-        draw_centered_text(msg_y, "You win!", 7)
+        draw_centered_text(msg_center_y, "You win!", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 7:
-        draw_centered_text(msg_y, "You lose...", 7)
+        draw_centered_text(msg_center_y, "You lose...", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 8:
-        draw_centered_text(msg_y, "Continue?", 7)
+        draw_centered_text(msg_center_y, "Continue?", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 9:
-        # YES / NO 選択（枠を広げて収める）
-        draw_centered_text(msg_y, "Continue?", 7)
+        # Continue? を少し上、その下に YES / NO（どっちも枠の中で中央寄せ）
+        cont_y = msg_center_y - 6
+        draw_centered_text(cont_y, "Continue?", 7)
 
         labels = ["YES", "NO"]
         slot_w = 45
         start_x = (SCREEN_W - slot_w * 2) // 2
+        yesno_y = msg_center_y + 4
 
         for i, label in enumerate(labels):
             x = start_x + i * slot_w
             text_x = x + (slot_w - len(label) * 4) // 2
-            pyxel.text(text_x, msg_y + 12, label, 7)
+            pyxel.text(text_x, yesno_y, label, 7)
 
             # 点滅カーソル（3px三角＋1文字分スペース）
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキスト左に4pxあける
                 base_x = tip_x - 3      # 横幅3px
-                cy = msg_y + 15
+                cy = yesno_y + 3
 
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 10:
-        draw_centered_text(msg_y, "One more time!", 7)
+        draw_centered_text(msg_center_y, "One more time!", 7)
         draw_next_indicator(panel_y)
 
 
