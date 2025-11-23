@@ -17,7 +17,7 @@ except ImportError:
 SCREEN_W = 160
 SCREEN_H = 120
 
-# 下の枠の横幅（少し短くした版）
+# 下の枠の横幅
 PANEL_W = 120
 
 pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
@@ -43,16 +43,17 @@ MENU = [
 # 6: You win!
 # 7: You lose...
 # 8: Continue?
-# 9: Yes / No 選択
-# 10: One more time!
+# 9: Yes / No 選択（勝った時だけ来る）
+# 10: One more time!（あいこ）
 game_phase = 0
 phase_timer = 0  # そのフェーズに入ってからの経過フレーム
 
 # 手 0: ROCK, 1: SCISSORS, 2: PAPER
 player_hand = 0
 cpu_hand = 0
-result = 0  # 1: win, 0: draw, -1: lose
+result = 0          # 1: win, 0: draw, -1: lose
 result_decided = False  # 3! のタイミングで勝敗を決めたかどうか
+win_streak = 0         # 連勝数（今は表示してないけどカウントしてる）
 
 # 選択カーソル
 hand_cursor = 0        # 0〜2
@@ -101,7 +102,7 @@ def reset_game() -> None:
     ゲーム開始時に状態をリセット
     """
     global game_phase, phase_timer, player_hand, cpu_hand, result
-    global hand_cursor, continue_cursor, result_decided
+    global hand_cursor, continue_cursor, result_decided, win_streak
 
     game_phase = 0
     phase_timer = 0
@@ -111,6 +112,7 @@ def reset_game() -> None:
     hand_cursor = 0
     continue_cursor = 0
     result_decided = False
+    win_streak = 0
     # BGM は scene 切り替え時にやるのでここでは呼ばない
 
 
@@ -140,7 +142,7 @@ def draw_next_indicator(panel_y: int) -> None:
 def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
-    global hand_cursor, continue_cursor, result_decided
+    global hand_cursor, continue_cursor, result_decided, win_streak
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -219,17 +221,20 @@ def update():
                 diff = (player_hand - cpu_hand + 3) % 3  # 0:あいこ,1:勝ち,2:負け
                 if diff == 0:
                     result = 0
+                    # あいこなので連勝数は変えない
                 elif diff == 1:
                     result = 1
+                    win_streak += 1      # 勝ったら連勝 +1
                 else:
                     result = -1
+                    win_streak = 0       # 負けたら連勝リセット
 
                 result_decided = True
 
             # 3! が出てから 0.7 秒後（=63フレーム〜）に OK 受付＆結果フェーズへ
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
-                    game_phase = 10  # One more time!
+                    game_phase = 10  # One more time!（あいこ）
                 elif result == 1:
                     game_phase = 6   # You win!
                 else:
@@ -237,41 +242,41 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 6:
-            # 「You win!」 → タイトルへ
-            if is_ok_pressed():
-                scene = 0
-                menu_idx = 0
-
-        elif game_phase == 7:
-            # 「You lose...」
+            # 「You win!」→ Continue? へ
             if is_ok_pressed():
                 game_phase = 8
                 phase_timer = 0
 
+        elif game_phase == 7:
+            # 「You lose...」→ 即タイトルへ戻す
+            if is_ok_pressed():
+                scene = 0
+                menu_idx = 0
+
         elif game_phase == 8:
-            # 「Continue?」→ ボタンで YES/NO 選択へ
+            # 「Continue?」→ YES/NO 選択へ
             if is_ok_pressed():
                 game_phase = 9
                 phase_timer = 0
 
         elif game_phase == 9:
-            # YES / NO 選択
+            # YES / NO 選択（勝った時だけここに来る）
             if is_left_pressed():
                 continue_cursor = 0
             if is_right_pressed():
                 continue_cursor = 1
 
             if is_ok_pressed():
-                if continue_cursor == 0:  # YES
+                if continue_cursor == 0:  # YES → 2回戦・3回戦…
                     game_phase = 1
                     phase_timer = 0
                     result_decided = False
-                else:  # NO
+                else:  # NO → タイトルへ
                     scene = 0
                     menu_idx = 0
 
         elif game_phase == 10:
-            # 「One more time!」→ もう一度手選びへ
+            # 「One more time!」→ もう一度手選びへ（あいこ）
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
@@ -297,7 +302,7 @@ def draw_game():
     pyxel.rect(panel_x, panel_y, PANEL_W, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, PANEL_W, panel_h, 7)   # 枠
 
-    # 上側（ゲームエリア）の文字は消しておく
+    # 上側（ゲームエリア）は今は何も描かない
     # draw_centered_text(30, "JANKEN GAME", 7)
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
