@@ -32,12 +32,11 @@ MENU = [
 ]
 
 # ===== GAME 用の状態管理 =====
-# 0: JANKEN GAME begins!
+# 0: Janken game begins!
 # 1: Which hand should I play?
 # 2: 手の選択
 # 3: Are you ready?
 # 4: 1,2,3!
-# 5: 結果計算＆分岐
 # 6: You win!
 # 7: You lose...
 # 8: Continue?
@@ -50,6 +49,7 @@ phase_timer = 0  # そのフェーズに入ってからの経過フレーム
 player_hand = 0
 cpu_hand = 0
 result = 0  # 1: win, 0: draw, -1: lose
+result_decided = False  # 3! のタイミングで勝敗を決めたかどうか
 
 # 選択カーソル
 hand_cursor = 0        # 0〜2
@@ -94,7 +94,12 @@ def is_right_pressed() -> bool:
 
 
 def reset_game() -> None:
-    global game_phase, phase_timer, player_hand, cpu_hand, result, hand_cursor, continue_cursor
+    """
+    ゲーム開始時に状態をリセット
+    """
+    global game_phase, phase_timer, player_hand, cpu_hand, result
+    global hand_cursor, continue_cursor, result_decided
+
     game_phase = 0
     phase_timer = 0
     player_hand = 0
@@ -102,6 +107,7 @@ def reset_game() -> None:
     result = 0
     hand_cursor = 0
     continue_cursor = 0
+    result_decided = False
     # BGM は scene 切り替え時にやるのでここでは呼ばない
 
 
@@ -129,7 +135,7 @@ def draw_next_indicator(panel_y: int) -> None:
 def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
-    global hand_cursor, continue_cursor
+    global hand_cursor, continue_cursor, result_decided
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -138,7 +144,7 @@ def update():
         elif scene == 1:
             set_bgm_scene(1)  # ゲーム用BGM
         elif scene == 2:
-            set_bgm_scene(0)  # HOW TO用BGM タイトルと同じでOKなら0にする
+            set_bgm_scene(2)  # HOW TO用BGM（bgm1 を使うなら JS 側で同じにしてOK）
         last_scene = scene
 
     # 0: TITLE
@@ -193,33 +199,37 @@ def update():
             if is_ok_pressed():
                 game_phase = 4
                 phase_timer = 0
+                result_decided = False  # 念のためリセット
 
         elif game_phase == 4:
-            # 「1, 2, 3!」
-            # 0〜20: 1, 21〜41: 2, 42〜: 3!
-            # 3! が出てから0.7秒後（=63〜）にOK押せる
+            # 1,2,3! フェーズ
+            # 0〜20: "1"
+            # 21〜41: "2"
+            # 42〜: "3!"
+            # 3! が出たタイミングで一度だけ CPU 手＆勝敗を決める
+            if phase_timer >= 42 and not result_decided:
+                cpu_hand = pyxel.rndi(0, 2)
+
+                # じゃんけん判定
+                diff = (player_hand - cpu_hand + 3) % 3  # 0:あいこ,1:勝ち,2:負け
+                if diff == 0:
+                    result = 0
+                elif diff == 1:
+                    result = 1
+                else:
+                    result = -1
+
+                result_decided = True
+
+            # 3! が出てから 0.7 秒後（=63フレーム〜）に OK 受付＆結果フェーズへ
             if phase_timer >= 63 and is_ok_pressed():
-                game_phase = 5
+                if result == 0:
+                    game_phase = 10  # One more time!
+                elif result == 1:
+                    game_phase = 6   # You win!
+                else:
+                    game_phase = 7   # You lose...
                 phase_timer = 0
-
-        elif game_phase == 5:
-            # 結果計算 → 即分岐
-            cpu_hand = pyxel.rndi(0, 2)
-
-            # (player - cpu + 3) % 3
-            # 0: あいこ, 1: 勝ち, 2: 負け
-            diff = (player_hand - cpu_hand + 3) % 3
-            if diff == 0:
-                result = 0
-                game_phase = 10  # One more time!
-            elif diff == 1:
-                result = 1
-                game_phase = 6   # You win!
-            else:
-                result = -1
-                game_phase = 7   # You lose...
-
-            phase_timer = 0
 
         elif game_phase == 6:
             # 「You win!」 → タイトルへ
@@ -250,6 +260,7 @@ def update():
                 if continue_cursor == 0:  # YES
                     game_phase = 1
                     phase_timer = 0
+                    result_decided = False
                 else:  # NO
                     scene = 0
                     menu_idx = 0
@@ -259,6 +270,7 @@ def update():
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
+                result_decided = False
 
     # 2: HOW TO
     elif scene == 2:
@@ -306,9 +318,9 @@ def draw_game():
 
             # 選択中に三角カーソル（点滅・3px幅）
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
-                tip_x = text_x - 4      # テキストとの隙間4px
-                base_x = tip_x - 3      # 横幅3px
-                cy = label_y + 2        # ← 1px 上にした版
+                tip_x = text_x - 4          # テキストとの隙間4px
+                base_x = tip_x - 3          # 横幅3px
+                cy = label_y + 2            # 文字と揃うように微調整
 
                 # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
@@ -362,7 +374,7 @@ def draw_game():
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキスト左に4pxあける
                 base_x = tip_x - 3      # 横幅3px
-                cy = yesno_y + 2        # ← 1px 上げた
+                cy = yesno_y + 2        # 文字と揃うように微調整
 
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
