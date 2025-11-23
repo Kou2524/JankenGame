@@ -291,8 +291,8 @@ def draw_game():
     pyxel.rect(0, panel_y, SCREEN_W, panel_h, 1)    # 中
     pyxel.rectb(0, panel_y, SCREEN_W, panel_h, 7)   # 枠
 
-    # 上側（ゲームエリア）仮タイトル
-    draw_centered_text(30, "JANKEN GAME", 7)
+    # 上側（ゲームエリア）仮タイトルだけど、非表示にしとくね
+    #draw_centered_text(30, "JANKEN GAME", 7)
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
