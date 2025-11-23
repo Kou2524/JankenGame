@@ -301,7 +301,7 @@ def draw_game():
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキストとの隙間4px
                 base_x = tip_x - 3      # 横幅3px
-                cy = label_y + 3        # テキストの縦中央
+                cy = label_y + 2        # テキストの縦中央
 
                 # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
@@ -355,7 +355,7 @@ def draw_game():
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキスト左に4pxあける
                 base_x = tip_x - 3      # 横幅3px
-                cy = yesno_y + 3
+                cy = yesno_y + 2
 
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
