@@ -22,6 +22,7 @@ pyxel.mouse(False)
 
 # 0: TITLE, 1: GAME, 2: HOW TO
 scene = 0
+last_scene = -1  # 直前のシーン（BGM切り替え用）
 
 # タイトルメニュー
 menu_idx = 0  # 0: START, 1: HOW TO
@@ -101,7 +102,7 @@ def reset_game() -> None:
     result = 0
     hand_cursor = 0
     continue_cursor = 0
-    set_bgm_scene(1)  # 必要なら GAME 用BGM
+    # BGM は scene 切り替え時にやるのでここでは呼ばない
 
 
 def draw_next_indicator(panel_y: int) -> None:
@@ -126,13 +127,19 @@ def draw_next_indicator(panel_y: int) -> None:
 # UPDATE
 # ------------------------------
 def update():
-    global scene, menu_idx
+    global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor
 
-    # タイトルにいる時だけBGMを切り替え
-    if scene == 0:
-        set_bgm_scene(0)
+    # === シーンが変わった瞬間だけ BGM を切り替える ===
+    if scene != last_scene:
+        if scene == 0:
+            set_bgm_scene(0)  # タイトル用BGM
+        elif scene == 1:
+            set_bgm_scene(1)  # ゲーム用BGM
+        elif scene == 2:
+            set_bgm_scene(2)  # HOW TO用BGM（なければ 0 や 1 にしてOK）
+        last_scene = scene
 
     # 0: TITLE
     if scene == 0:
@@ -264,7 +271,7 @@ def update():
 # DRAW (GAME)
 # ------------------------------
 def draw_game():
-    # 下パネルの高さを少し広げる
+    # 下パネルの高さ
     panel_h = 32
     panel_y = SCREEN_H - panel_h
 
@@ -279,7 +286,7 @@ def draw_game():
     msg_center_y = panel_y + panel_h // 2 - 3
 
     if game_phase == 0:
-        draw_centered_text(msg_center_y, "JANKEN GAME begins!", 7)
+        draw_centered_text(msg_center_y, "Janken game begins!", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 1:
@@ -301,7 +308,7 @@ def draw_game():
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキストとの隙間4px
                 base_x = tip_x - 3      # 横幅3px
-                cy = label_y + 2        # テキストの縦中央
+                cy = label_y + 2        # ← 1px 上にした版
 
                 # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
@@ -337,7 +344,7 @@ def draw_game():
         draw_next_indicator(panel_y)
 
     elif game_phase == 9:
-        # Continue? を少し上、その下に YES / NO（どっちも枠の中で中央寄せ）
+        # Continue? を少し上、その下に YES / NO
         cont_y = msg_center_y - 6
         draw_centered_text(cont_y, "Continue?", 7)
 
@@ -355,7 +362,7 @@ def draw_game():
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4      # テキスト左に4pxあける
                 base_x = tip_x - 3      # 横幅3px
-                cy = yesno_y + 2
+                cy = yesno_y + 2        # ← 1px 上げた
 
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
