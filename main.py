@@ -224,10 +224,11 @@ def update():
                     # あいこなので連勝数は変えない
                 elif diff == 1:
                     result = 1
-                    win_streak += 1      # 勝ったら連勝 +1
+                    # ★ 勝ってもここでは win_streak を増やさない
+                    #    （Continue? に進むタイミングで増やす）
                 else:
                     result = -1
-                    win_streak = 0       # 負けたら連勝リセット
+                    win_streak = 0       # 負けたらここで連勝リセット
 
                 result_decided = True
 
@@ -243,7 +244,10 @@ def update():
 
         elif game_phase == 6:
             # 「You win!」→ Continue? へ
+            # ★ このタイミングで連勝数を +1 して、
+            #    次の「Continue?」表示と同時に WIN の数も増える
             if is_ok_pressed():
+                win_streak += 1      # ここで初めてカウントアップ
                 game_phase = 8
                 phase_timer = 0
 
@@ -252,7 +256,7 @@ def update():
             if is_ok_pressed():
                 scene = 0
                 menu_idx = 0
-                win_streak = 0  # 念のためリセット
+                win_streak = 0  # 念のためリセット（保険）
 
         elif game_phase == 8:
             # 「Continue?」→ YES/NO 選択へ
@@ -311,8 +315,6 @@ def draw_game():
     # 下パネル（横幅を少し短く）
     pyxel.rect(panel_x, panel_y, PANEL_W, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, PANEL_W, panel_h, 7)   # 枠
-
-    # 上側（ゲームエリア）は今は何も描かない
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
