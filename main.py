@@ -307,7 +307,7 @@ def draw_game():
                 cy = msg_y + 7              # 三角の縦方向の中心
 
                 # 右向きの小さめ三角（幅5px）
-                pyxel.tri(base_x, cy - 3, base_x, cy + 3, tip_x, cy, 7)
+                pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 3:
         draw_centered_text(msg_y, "Are you ready?", 7)
@@ -354,7 +354,7 @@ def draw_game():
                 base_x = tip_x - 3          # 幅3pxの三角
                 cy = msg_y + 15             # 縦方向の中心
 
-                pyxel.tri(base_x, cy - 3, base_x, cy + 3, tip_x, cy, 7)
+                pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 10:
         draw_centered_text(msg_y, "One more time!", 7)
