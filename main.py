@@ -286,7 +286,7 @@ def draw_game():
     msg_center_y = panel_y + panel_h // 2 - 3
 
     if game_phase == 0:
-        draw_centered_text(msg_center_y, "Janken game begins!", 7)
+        draw_centered_text(msg_center_y, "JANKEN GAME begins!", 7)
         draw_next_indicator(panel_y)
 
     elif game_phase == 1:
