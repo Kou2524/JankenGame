@@ -64,11 +64,18 @@ def update():
 
     if scene == 0:
         # ===== TITLE =====
-        if btnp_up():
-            menu_idx = (menu_idx - 1) % len(MENU)
-        if btnp_down():
-            menu_idx = (menu_idx + 1) % len(MENU)
 
+        # 上：一番上ならそれ以上行かない
+        if btnp_up():
+            if menu_idx > 0:
+                menu_idx -= 1
+
+        # 下：一番下ならそれ以上行かない
+        if btnp_down():
+            if menu_idx < len(MENU) - 1:
+                menu_idx += 1
+
+        # 決定
         if btnp_ok():
             if menu_idx == 0:
                 scene = 1  # GAME
@@ -113,9 +120,9 @@ def draw():
                 cy2 = y + h - 2
                 cm = (cy1 + cy2) // 2
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
-                
-        #下の行はタイトル画面下部に文字を表示するコード
-        #draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
+
+        # 下の行はタイトル画面下部に文字を表示するコード
+        # draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
 
     elif scene == 1:
         # ===== GAME（中身はあとで作る） =====
