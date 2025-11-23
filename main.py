@@ -113,8 +113,9 @@ def draw():
                 cy2 = y + h - 2
                 cm = (cy1 + cy2) // 2
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
-
-        draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
+                
+        #下の行はタイトル画面下部に文字を表示するコード
+        #draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
 
     elif scene == 1:
         # ===== GAME（中身はあとで作る） =====
