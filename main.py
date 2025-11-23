@@ -109,12 +109,17 @@ def draw_next_indicator(panel_y: int) -> None:
     枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
     if (pyxel.frame_count % 30) < 15:
-        cx = SCREEN_W - 10     # 右端
-        base_y = panel_y + 27  # パネル下の位置
-        top_y = base_y - 3     # 三角の頂点
+        cx = SCREEN_W - 10     # 中央X（右寄せ）
+        top_y = panel_y + 22   # 一番上のライン
+        base_y = top_y + 4     # 下の頂点ライン（少し下）
 
-        # 小さい▼三角（幅3px）
-        pyxel.tri(cx, top_y, cx - 2, base_y, cx + 2, base_y, 7)
+        # 下向き▼三角（幅4px）
+        pyxel.tri(
+            cx - 2, top_y,   # 左上
+            cx + 2, top_y,   # 右上
+            cx, base_y,      # 下の中央（ここが頂点）
+            7
+        )
 
 
 
