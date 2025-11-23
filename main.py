@@ -190,8 +190,8 @@ def update():
         elif game_phase == 4:
             # 「1, 2, 3!」
             # 0〜17: 1, 18〜35: 2, 36〜: 3!
-            # 3! が出てから18フレーム後（=54〜）にOK押せる
-            if phase_timer >= 54 and is_ok_pressed():
+            # 3! が出てから21フレーム後（=63〜）にOK押せる
+            if phase_timer >= 63 and is_ok_pressed():
                 game_phase = 5
                 phase_timer = 0
 
@@ -310,17 +310,17 @@ def draw_game():
         draw_next_indicator(panel_y)
 
     elif game_phase == 4:
-        # 1,2,3! の表示（0.6秒＝18フレーム間隔）
-        if phase_timer < 18:
+        # 1,2,3! の表示（0.7秒＝21フレーム間隔）
+        if phase_timer < 21:
             text = "1"
-        elif phase_timer < 36:
+        elif phase_timer < 42:
             text = "2"
         else:
             text = "3!"
         draw_centered_text(msg_y, text, 7)
 
-        # 3! が出てから18フレーム後に ▼ 点滅開始
-        if phase_timer >= 54:
+        # 3! が出てから21フレーム後に ▼ 点滅開始
+        if phase_timer >= 63:
             draw_next_indicator(panel_y)
 
     elif game_phase == 6:
