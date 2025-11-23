@@ -27,7 +27,7 @@ scene = 0
 menu_idx = 0  # 0: START, 1: HOW TO
 MENU = [
     ("START", 52, 70, 56, 12),
-    ("HOW TO", 48, 86, 64, 12),
+    ("HOW TO", 52, 86, 56, 12),
 ]
 
 # ===== GAME 用の状態管理 =====
