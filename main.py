@@ -189,14 +189,18 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 4:
-            # 「1, 2, 3!」
-            # 表示は draw 側で、一定時間経過後にOK受付
-            # 0.6sごと → 18フレーム（fps=30）
-            # 3! のあと 1秒(30フレーム)待ってからOK
-            ready_frame = 18 * 3 + 30  # 84フレーム
-            if phase_timer >= ready_frame and is_ok_pressed():
-                game_phase = 5
-                phase_timer = 0
+           # 1,2,3! の表示（0.6秒＝18フレーム間隔）
+           if phase_timer < 18:
+               text = "1"
+           elif phase_timer < 36:
+               text = "2"
+           else:
+               text = "3!"
+           draw_centered_text(msg_y, text, 7)
+
+        # 3! が出ている間だけ、右下に▼を点滅表示
+        if phase_timer >= 36:
+            draw_next_indicator(panel_y)
 
         elif game_phase == 5:
             # 結果計算 → 即分岐
