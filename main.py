@@ -53,7 +53,7 @@ player_hand = 0
 cpu_hand = 0
 result = 0          # 1: win, 0: draw, -1: lose
 result_decided = False  # 3! のタイミングで勝敗を決めたかどうか
-win_streak = 0         # 連勝数（今は表示してないけどカウントしてる）
+win_streak = 0         # 連勝数
 
 # 選択カーソル
 hand_cursor = 0        # 0〜2
@@ -252,6 +252,7 @@ def update():
             if is_ok_pressed():
                 scene = 0
                 menu_idx = 0
+                win_streak = 0  # 念のためリセット
 
         elif game_phase == 8:
             # 「Continue?」→ YES/NO 選択へ
@@ -271,9 +272,10 @@ def update():
                     game_phase = 1
                     phase_timer = 0
                     result_decided = False
-                else:  # NO → タイトルへ
+                else:  # NO → タイトルへ & 連勝リセット
                     scene = 0
                     menu_idx = 0
+                    win_streak = 0
 
         elif game_phase == 10:
             # 「One more time!」→ もう一度手選びへ（あいこ）
@@ -298,12 +300,19 @@ def draw_game():
     panel_y = SCREEN_H - panel_h
     panel_x = (SCREEN_W - PANEL_W) // 2
 
+    # ===== 右上に連勝数表示 =====
+    if win_streak > 0:
+        win_text = f"WIN {win_streak}"
+        text_w = len(win_text) * 4
+        x = SCREEN_W - text_w - 4   # 右端から4px空ける
+        y = 4
+        pyxel.text(x, y, win_text, 7)
+
     # 下パネル（横幅を少し短く）
     pyxel.rect(panel_x, panel_y, PANEL_W, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, PANEL_W, panel_h, 7)   # 枠
 
     # 上側（ゲームエリア）は今は何も描かない
-    # draw_centered_text(30, "JANKEN GAME", 7)
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
