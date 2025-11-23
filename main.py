@@ -32,7 +32,7 @@ MENU = [
 ]
 
 # ===== GAME 用の状態管理 =====
-# 0: Janken game begins!
+# 0: JANKEN GAME begins!
 # 1: Which hand should I play?
 # 2: 手の選択
 # 3: Are you ready?
