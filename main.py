@@ -301,11 +301,13 @@ def draw_game():
 
             # 選択中に三角カーソル（点滅）
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
-                tri_x = text_x - 6
-                tri_y1 = msg_y + 3
-                tri_y2 = msg_y + 11
-                tri_m = (tri_y1 + tri_y2) // 2
-                pyxel.tri(tri_x + 4, tri_m, tri_x, tri_y1, tri_x, tri_y2, 7)
+                # テキストの左に半角1文字(4px)空けて、その左に幅5pxの三角
+                tip_x = text_x - 4          # ここが三角の先端
+                base_x = tip_x - 5          # 三角の左端
+                cy = msg_y + 7              # 三角の縦方向の中心
+
+                # 右向きの小さめ三角（幅5px）
+                pyxel.tri(base_x, cy - 3, base_x, cy + 3, tip_x, cy, 7)
 
     elif game_phase == 3:
         draw_centered_text(msg_y, "Are you ready?", 7)
@@ -346,13 +348,13 @@ def draw_game():
             text_x = x + (slot_w - len(label) * 4) // 2
             pyxel.text(text_x, msg_y + 12, label, 7)
 
-            # 点滅カーソル
+            # 点滅カーソル（手の選択肢と同じサイズ＆1文字分の隙間）
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
-                tri_x = text_x - 6
-                tri_y1 = msg_y + 11
-                tri_y2 = msg_y + 19
-                tri_m = (tri_y1 + tri_y2) // 2
-                pyxel.tri(tri_x + 4, tri_m, tri_x, tri_y1, tri_x, tri_y2, 7)
+                tip_x = text_x - 4          # テキストの左に半角1文字分の隙間
+                base_x = tip_x - 5          # 幅5pxの三角
+                cy = msg_y + 15             # 縦方向の中心
+
+                pyxel.tri(base_x, cy - 3, base_x, cy + 3, tip_x, cy, 7)
 
     elif game_phase == 10:
         draw_centered_text(msg_y, "One more time!", 7)
