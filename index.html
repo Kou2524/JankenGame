@@ -4,12 +4,20 @@
     <meta charset="utf-8" />
     <title>Janken Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+
     <style>
       html, body {
         margin: 0;
-        height: 100%;
+        padding: 0;
         background: #000;
+        height: 100%;
+        overflow: hidden;
+      }
+      pyxel-run, canvas {
+        image-rendering: pixelated;
+        cursor: none !important;
       }
       #wrap {
         position: fixed;
@@ -18,28 +26,65 @@
         place-items: center;
         background: #000;
       }
-      pyxel-run, canvas {
-        image-rendering: pixelated;
-        cursor: none;  /* ← もうカーソル使わないならこちらがシンプル */
-      }
-      #hint {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: end center;
-        padding-bottom: 24px;
-        color: #bbb;
-        font: 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        user-select: none;
-        pointer-events: none;
-      }
     </style>
   </head>
 
   <body>
+    <!-- 🔊 BGM：タイトル＆HOW TO 用 -->
+    <audio id="bgm1" src="bgm1.mp3" loop></audio>
+    <!-- 🔊 BGM：GAME 用 -->
+    <audio id="bgm2" src="bgm2.mp3" loop></audio>
+
     <div id="wrap">
       <pyxel-run root="." name="main.py" gamepad="enabled"></pyxel-run>
-      <div id="hint">TAP PAGE TO PLAY BGM</div>
     </div>
+
+    <script>
+      const bgm1 = document.getElementById("bgm1");
+      const bgm2 = document.getElementById("bgm2");
+
+      let started = false;   // ユーザーの初回タップ済みか
+      let currentScene = 0;  // Python側から最後に受け取ったシーン
+
+      function stopAllBgm() {
+        bgm1.pause();
+        bgm2.pause();
+      }
+
+      function applyBgmByScene() {
+        if (!started) return; // まだ再生許可もらってない時は何もしない
+
+        stopAllBgm();
+
+        if (currentScene === 0 || currentScene === 2) {
+          bgm1.currentTime = 0;
+          bgm1.play();
+        } else if (currentScene === 1) {
+          bgm2.currentTime = 0;
+          bgm2.play();
+        }
+      }
+
+      // iOS 対策：どこか1回タップ/クリックされたら再生許可
+      function userStart() {
+        if (!started) {
+          started = true;
+          applyBgmByScene();  // 今のシーンに応じた曲を流す
+        }
+      }
+
+      window.addEventListener("touchstart", userStart, { once: true });
+      window.addEventListener("mousedown", userStart, { once: true });
+
+      // 🔥 Python から呼ばれる関数（from js import set_bgm_scene）
+      function set_bgm_scene(scene) {
+        // Pyodide からは Number で飛んでくる想定
+        currentScene = Number(scene);
+        applyBgmByScene();
+      }
+
+      // グローバルに公開しておく（念のため）
+      window.set_bgm_scene = set_bgm_scene;
+    </script>
   </body>
 </html>
