@@ -125,29 +125,27 @@ def draw():
         # draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
 
     elif scene == 1:
-    # ===== GAME =====
-    # 背景はタイトルと同じ(一番上の pyxel.cls(0) のまま使う)
+        # ===== GAME =====
+        SCREEN_W = 160
+        SCREEN_H = 120
 
-    SCREEN_W = 160
-    SCREEN_H = 120
+        # 画面を「上8 : 下2」に分ける
+        panel_h = SCREEN_H // 5      # 下 2割 = 24px
+        panel_y = SCREEN_H - panel_h # 96
 
-    # 画面を「上8 : 下2」に分ける
-    panel_h = SCREEN_H // 5 * 1      # 下 2割 = 24px
-    panel_y = SCREEN_H - panel_h     # 下パネルの開始位置 = 96
+        # 下 2割のセリフ・選択肢エリア（背景＋枠）
+        pyxel.rect(0, panel_y, SCREEN_W, panel_h, 1)   # パネルの中の色
+        pyxel.rectb(0, panel_y, SCREEN_W, panel_h, 7)  # 外枠
 
-    # 下 2割のセリフ・選択肢エリア（背景＋枠）
-    pyxel.rect(0, panel_y, SCREEN_W, panel_h, 1)   # パネルの中の色（好きに変えてOK）
-    pyxel.rectb(0, panel_y, SCREEN_W, panel_h, 7)  # 外枠
-
-    # 上 8割のゲームエリアとりあえず仮表示
-    draw_centered_text(40, "GAME SCREEN", 7)
+        # 上 8割のゲームエリア 仮表示
+        draw_centered_text(40, "GAME SCREEN", 7)
 
     elif scene == 2:
         # ===== HOW TO =====
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
-        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
+        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
+        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
 
 
 # 最初のシーンも一応通知しておく
