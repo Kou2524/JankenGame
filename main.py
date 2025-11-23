@@ -1,6 +1,6 @@
 import pyxel
 
-# ===== JS 側の set_bgm_scene を呼べるようにする =====
+# ==== JS側のBGM切り替え（あれば） =================================
 try:
     from js import set_bgm_scene as _set_bgm_scene_js
 
@@ -8,137 +8,151 @@ try:
         _set_bgm_scene_js(scene)
 
 except ImportError:
-    # ローカル実行(Pythonistaとか)用のダミー
+    # ローカル実行用のダミー
     def set_bgm_scene(scene: int) -> None:
         pass
 
 
-pyxel.init(160, 120, title="Janken Game", fps=30)
+# ==== 定数 ==========================================================
+WIDTH = 160
+HEIGHT = 120
+
+SCENE_TITLE = 0
+SCENE_GAME = 1
+
+# セリフウィンドウ用
+DIALOG_Y = 80
+DIALOG_H = 40
+
+HAND_NAMES = ["グー", "チョキ", "パー"]
+
+# ==== 状態 ==========================================================
+scene = SCENE_TITLE
+menu_idx = 0  # いまはSTARTしかないけど一応
+hand_idx = 0  # プレイヤーが選んでる手
+dialog_text = "レゼ「どの手を出す？」"
+
+# ==== 初期化 ========================================================
+pyxel.init(WIDTH, HEIGHT, title="Janken Game", fps=30)
 pyxel.mouse(False)
 
-# 0: TITLE, 1: GAME, 2: HOW TO
-scene = 0
-menu_idx = 0
 
-MENU = [
-    ("START", 48, 70, 64, 12),
-    ("HOW TO", 48, 86, 64, 12),
-]
-
-
-def draw_centered_text(y, text, col):
+# ==== 共通の小物 ====================================================
+def draw_centered_text(y: int, text: str, col: int) -> None:
     text_w = len(text) * 4
-    x = (pyxel.width - text_w) // 2
+    x = (WIDTH - text_w) // 2
     pyxel.text(x, y, text, col)
 
 
-def btnp_up():
-    return (
-        pyxel.btnp(pyxel.KEY_UP)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP)
-    )
-
-
-def btnp_down():
-    return (
-        pyxel.btnp(pyxel.KEY_DOWN)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN)
-    )
-
-
-def btnp_ok():
-    return (
-        pyxel.btnp(pyxel.KEY_RETURN)
-        or pyxel.btnp(pyxel.KEY_SPACE)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_X)
-        or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_Y)
-    )
-
-
+# ==== メインループ ==================================================
 def update():
-    global scene, menu_idx
+    global scene
 
-    old_scene = scene  # シーン変更検知用
-
-    if scene == 0:
-        # ===== TITLE =====
-
-        # 上：一番上ならそれ以上行かない
-        if btnp_up():
-            if menu_idx > 0:
-                menu_idx -= 1
-
-        # 下：一番下ならそれ以上行かない
-        if btnp_down():
-            if menu_idx < len(MENU) - 1:
-                menu_idx += 1
-
-        # 決定
-        if btnp_ok():
-            if menu_idx == 0:
-                scene = 1  # GAME
-            else:
-                scene = 2  # HOW TO
-
-    elif scene == 1:
-        # ===== GAME =====
-        if btnp_ok():
-            scene = 0  # タイトルに戻る
-
-    elif scene == 2:
-        # ===== HOW TO =====
-        if btnp_ok():
-            scene = 0  # タイトルに戻る
-
-    # シーンが変わったときだけ JS 側に通知
-    if scene != old_scene:
-        set_bgm_scene(scene)
+    if scene == SCENE_TITLE:
+        update_title()
+    elif scene == SCENE_GAME:
+        update_game()
 
 
 def draw():
     pyxel.cls(0)
 
-    if scene == 0:
-        # ===== TITLE =====
-        draw_centered_text(30, "JANKEN GAME", 7)
-
-        for i, (label, x, y, w, h) in enumerate(MENU):
-            hi = (i == menu_idx)
-            border_col = 10 if hi else 5
-            text_col = 7 if hi else 6
-
-            pyxel.rectb(x, y, w, h, border_col)
-            tx = x + (w - len(label) * 4) // 2
-            pyxel.text(tx, y + 3, label, text_col)
-
-            # ▶ カーソル（点滅）
-            if hi and pyxel.frame_count % 20 < 10:
-                cx = x - 6
-                cy1 = y + 2
-                cy2 = y + h - 2
-                cm = (cy1 + cy2) // 2
-                pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
-
-        # 下の行はタイトル画面下部に文字を表示するコード
-        # draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
-
-    elif scene == 1:
-        # ===== GAME（中身はあとで作る） =====
-        pyxel.cls(1)
-        draw_centered_text(40, "GAME SCREEN", 7)
-        draw_centered_text(100, "Press ENTER/A/B/X/Y to TITLE", 11)
-
-    elif scene == 2:
-        # ===== HOW TO =====
-        draw_centered_text(20, "HOW TO PLAY", 10)
-        pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
-        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
+    if scene == SCENE_TITLE:
+        draw_title()
+    elif scene == SCENE_GAME:
+        draw_game()
 
 
-# 最初のシーンも一応通知しておく
-set_bgm_scene(scene)
+# ==== TITLEシーン ===================================================
+def update_title():
+    global scene
+
+    # STARTボタンを押したらGAMEへ
+    # キーボード or 仮想ゲームパッドのZ / ENTER / SPACE
+    if (
+        pyxel.btnp(pyxel.KEY_Z)
+        or pyxel.btnp(pyxel.KEY_RETURN)
+        or pyxel.btnp(pyxel.KEY_SPACE)
+    ):
+        scene = SCENE_GAME
+        set_bgm_scene(1)
+
+    # マウスクリックでもOK（PC用）
+    if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+        mx, my = pyxel.mouse_x, pyxel.mouse_y
+        bx, by, bw, bh = 52, 70, 56, 12
+        if bx <= mx < bx + bw and by <= my < by + bh:
+            scene = SCENE_GAME
+            set_bgm_scene(1)
+
+
+def draw_title():
+    # タイトル
+    draw_centered_text(40, "JANKEN GAME", 7)
+
+    # STARTボタン風
+    text = "START"
+    w = len(text) * 4 + 8
+    h = 14
+    bx = (WIDTH - w) // 2
+    by = 70
+
+    pyxel.rect(bx, by, w, h, 1)     # 中
+    pyxel.rectb(bx, by, w, h, 7)    # 枠
+    pyxel.text(bx + 4, by + 4, text, 7)
+
+
+# ==== GAMEシーン ====================================================
+def update_game():
+    global hand_idx, dialog_text
+
+    # ←→で手を選ぶ
+    if pyxel.btnp(pyxel.KEY_LEFT):
+        hand_idx = (hand_idx - 1) % len(HAND_NAMES)
+    if pyxel.btnp(pyxel.KEY_RIGHT):
+        hand_idx = (hand_idx + 1) % len(HAND_NAMES)
+
+    # 決定（Z / ENTER / SPACE）
+    if (
+        pyxel.btnp(pyxel.KEY_Z)
+        or pyxel.btnp(pyxel.KEY_RETURN)
+        or pyxel.btnp(pyxel.KEY_SPACE)
+    ):
+        chosen = HAND_NAMES[hand_idx]
+        dialog_text = f"レゼ「{chosen} なんだ？」"
+
+
+def draw_game():
+    # --- 上のバトルエリア（そのうち手とかキャラ絵を置くゾーン） ---
+    pyxel.text(10, 10, "ENEMY", 8)
+    pyxel.text(10, 30, "YOU", 11)
+    draw_centered_text(20, "VS", 7)
+
+    # --- 下のセリフウィンドウ ---
+    # 背景
+    pyxel.rect(0, DIALOG_Y, WIDTH, DIALOG_H, 1)
+    pyxel.rectb(0, DIALOG_Y, WIDTH, DIALOG_H, 7)
+
+    # セリフ
+    pyxel.text(4, DIALOG_Y + 4, dialog_text, 7)
+
+    # 選択肢表示
+    options_text = ""
+    for i, name in enumerate(HAND_NAMES):
+        if i == hand_idx:
+            options_text += f"[{name}] "
+        else:
+            options_text += f" {name}  "
+
+    text_w = len(options_text) * 4
+    ox = (WIDTH - text_w) // 2
+    oy = DIALOG_Y + 16
+    pyxel.text(ox, oy, options_text, 7)
+
+    # カーソル（だいたいの位置で▼）
+    cursor_x = ox + hand_idx * 4 * 4  # ざっくり4文字分ずつずらす
+    cursor_y = oy + 8
+    pyxel.text(cursor_x, cursor_y, "▼", 10)
+
 
 pyxel.run(update, draw)
