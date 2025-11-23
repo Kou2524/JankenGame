@@ -122,7 +122,6 @@ def draw_next_indicator(panel_y: int) -> None:
         )
 
 
-
 # ------------------------------
 # UPDATE
 # ------------------------------
@@ -189,18 +188,12 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 4:
-           # 1,2,3! の表示（0.6秒＝18フレーム間隔）
-           if phase_timer < 18:
-               text = "1"
-           elif phase_timer < 36:
-               text = "2"
-           else:
-               text = "3!"
-           draw_centered_text(msg_y, text, 7)
-
-        # 3! が出ている間だけ、右下に▼を点滅表示
-        if phase_timer >= 36:
-            draw_next_indicator(panel_y)
+            # 「1, 2, 3!」
+            # 0〜17: 1, 18〜35: 2, 36〜: 3!
+            # 3! が出た瞬間（36フレーム以降）からOK押せる
+            if phase_timer >= 36 and is_ok_pressed():
+                game_phase = 5
+                phase_timer = 0
 
         elif game_phase == 5:
             # 結果計算 → 即分岐
@@ -303,14 +296,13 @@ def draw_game():
             text_x = x + (slot_w - len(label) * 4) // 2
             pyxel.text(text_x, msg_y + 4, label, 7)
 
-            # 選択中に三角カーソル（点滅）
+            # 選択中に三角カーソル（点滅・3px幅）
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
-                # テキストの左に半角1文字(4px)空けて、その左に幅5pxの三角
-                tip_x = text_x - 4          # ここが三角の先端
-                base_x = tip_x - 3          # 三角の左端
-                cy = msg_y + 7              # 三角の縦方向の中心
+                tip_x = text_x - 4      # テキストとの隙間4px
+                base_x = tip_x - 3      # 横幅3px
+                cy = msg_y + 7          # 縦の中心
 
-                # 右向きの小さめ三角（幅5px）
+                # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 3:
@@ -326,6 +318,10 @@ def draw_game():
         else:
             text = "3!"
         draw_centered_text(msg_y, text, 7)
+
+        # 3! が出ている間だけ、右下に▼を点滅表示
+        if phase_timer >= 36:
+            draw_next_indicator(panel_y)
 
     elif game_phase == 6:
         draw_centered_text(msg_y, "You win!", 7)
@@ -352,11 +348,11 @@ def draw_game():
             text_x = x + (slot_w - len(label) * 4) // 2
             pyxel.text(text_x, msg_y + 12, label, 7)
 
-            # 点滅カーソル（手の選択肢と同じサイズ＆1文字分の隙間）
+            # 点滅カーソル（3px三角＋1文字分スペース）
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
-                tip_x = text_x - 4          # テキストの左に半角1文字分の隙間
-                base_x = tip_x - 3          # 幅3pxの三角
-                cy = msg_y + 15             # 縦方向の中心
+                tip_x = text_x - 4      # テキスト左に4pxあける
+                base_x = tip_x - 3      # 横幅3px
+                cy = msg_y + 15
 
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
