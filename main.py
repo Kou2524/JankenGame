@@ -17,6 +17,9 @@ except ImportError:
 SCREEN_W = 160
 SCREEN_H = 120
 
+# 下の枠の横幅（少し短くした版）
+PANEL_W = 120
+
 pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
 pyxel.mouse(False)
 
@@ -116,7 +119,9 @@ def draw_next_indicator(panel_y: int) -> None:
     枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
     if (pyxel.frame_count % 30) < 15:
-        cx = SCREEN_W - 10     # 中央X（右寄せ）
+        # 枠の右端から少し左に寄せた位置
+        panel_x = (SCREEN_W - PANEL_W) // 2
+        cx = panel_x + PANEL_W - 10
         top_y = panel_y + 22   # 一番上のライン
         base_y = top_y + 4     # 下の頂点ライン（少し下）
 
@@ -144,7 +149,7 @@ def update():
         elif scene == 1:
             set_bgm_scene(1)  # ゲーム用BGM
         elif scene == 2:
-            set_bgm_scene(2)  # HOW TO用BGM（bgm1 を使うなら JS 側で同じにしてOK）
+            set_bgm_scene(2)  # HOW TO 用BGM
         last_scene = scene
 
     # 0: TITLE
@@ -171,7 +176,7 @@ def update():
         phase_timer += 1
 
         if game_phase == 0:
-            # 「Janken game begins!」
+            # 「JANKEN GAME begins!」
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
@@ -202,7 +207,7 @@ def update():
                 result_decided = False  # 念のためリセット
 
         elif game_phase == 4:
-            # 1,2,3! フェーズ
+            # 1,2,3! フェーズ（0.7秒＝21フレーム間隔）
             # 0〜20: "1"
             # 21〜41: "2"
             # 42〜: "3!"
@@ -286,13 +291,14 @@ def draw_game():
     # 下パネルの高さ
     panel_h = 32
     panel_y = SCREEN_H - panel_h
+    panel_x = (SCREEN_W - PANEL_W) // 2
 
-    # 下パネル
-    pyxel.rect(0, panel_y, SCREEN_W, panel_h, 1)    # 中
-    pyxel.rectb(0, panel_y, SCREEN_W, panel_h, 7)   # 枠
+    # 下パネル（横幅を少し短く）
+    pyxel.rect(panel_x, panel_y, PANEL_W, panel_h, 1)    # 中
+    pyxel.rectb(panel_x, panel_y, PANEL_W, panel_h, 7)   # 枠
 
-    # 上側（ゲームエリア）仮タイトルだけど、非表示にしとくね
-    #draw_centered_text(30, "JANKEN GAME", 7)
+    # 上側（ゲームエリア）の文字は消しておく
+    # draw_centered_text(30, "JANKEN GAME", 7)
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
@@ -307,7 +313,7 @@ def draw_game():
 
     elif game_phase == 2:
         # 手の選択肢：1行まるごと中央揃え
-        slot_w = 40
+        slot_w = 40  # 40 * 3 = 120 = PANEL_W ぴったり
         start_x = (SCREEN_W - slot_w * 3) // 2
 
         for i, label in enumerate(HAND_LABELS):
