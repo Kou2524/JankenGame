@@ -303,7 +303,7 @@ def draw_game():
             if i == hand_cursor and pyxel.frame_count % 20 < 10:
                 # テキストの左に半角1文字(4px)空けて、その左に幅5pxの三角
                 tip_x = text_x - 4          # ここが三角の先端
-                base_x = tip_x - 5          # 三角の左端
+                base_x = tip_x - 3          # 三角の左端
                 cy = msg_y + 7              # 三角の縦方向の中心
 
                 # 右向きの小さめ三角（幅5px）
@@ -351,7 +351,7 @@ def draw_game():
             # 点滅カーソル（手の選択肢と同じサイズ＆1文字分の隙間）
             if i == continue_cursor and pyxel.frame_count % 20 < 10:
                 tip_x = text_x - 4          # テキストの左に半角1文字分の隙間
-                base_x = tip_x - 5          # 幅5pxの三角
+                base_x = tip_x - 3          # 幅3pxの三角
                 cy = msg_y + 15             # 縦方向の中心
 
                 pyxel.tri(base_x, cy - 3, base_x, cy + 3, tip_x, cy, 7)
