@@ -122,7 +122,7 @@ def draw():
                 pyxel.tri(cx + 4, cm, cx, cy1, cx, cy2, 7)
 
         # 下の行はタイトル画面下部に文字を表示するコード
-        # draw_centered_text(110, "ARROW / GAMEPAD + ENTER/A/B/X/Y", 13)
+        # draw_centered_text(110, "ARROW / GAMEPAD + ENTER / BUTTONS", 13)
 
     elif scene == 1:
         # ===== GAME =====
@@ -144,8 +144,8 @@ def draw():
         # ===== HOW TO =====
         draw_centered_text(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
-        pyxel.text(10, 60, "- Press ENTER / A/B/X/Y", 7)
-        pyxel.text(10, 80, "Press ENTER / A/B/X/Y to TITLE", 13)
+        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
+        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
 
 
 # 最初のシーンも一応通知しておく
