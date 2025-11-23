@@ -263,10 +263,10 @@ def draw_game():
     msg_y = panel_y + 6
 
     if game_phase == 0:
-        draw_centered_text(msg_y, "Janken game begins!", 7)
+        draw_centered_text(msg_y + 2, "Janken game begins!", 7)
 
     elif game_phase == 1:
-        draw_centered_text(msg_y, "Which hand should I play?", 7)
+        draw_centered_text(msg_y + 2, "Which hand should I play?", 7)
 
     elif game_phase == 2:
         # 手の選択肢だけ表示（Rock Paper Scissors の文字は消す）
@@ -287,7 +287,7 @@ def draw_game():
                 pyxel.tri(tri_x + 4, tri_m, tri_x, tri_y1, tri_x, tri_y2, 7)
 
     elif game_phase == 3:
-        draw_centered_text(msg_y, "Are you ready?", 7)
+        draw_centered_text(msg_y + 2, "Are you ready?", 7)
 
     elif game_phase == 4:
         # 1,2,3! の表示（0.6秒＝18フレーム間隔）
@@ -300,10 +300,10 @@ def draw_game():
         draw_centered_text(msg_y, text, 7)
 
     elif game_phase == 6:
-        draw_centered_text(msg_y, "You win!", 7)
+        draw_centered_text(msg_y + 2, "You win!", 7)
 
     elif game_phase == 7:
-        draw_centered_text(msg_y, "You lose...", 7)
+        draw_centered_text(msg_y + 2, "You lose...", 7)
 
     elif game_phase == 8:
         draw_centered_text(msg_y, "Continue?", 7)
@@ -330,7 +330,7 @@ def draw_game():
                 pyxel.tri(tri_x + 4, tri_m, tri_x, tri_y1, tri_x, tri_y2, 7)
 
     elif game_phase == 10:
-        draw_centered_text(msg_y, "One more time!", 7)
+        draw_centered_text(msg_y + 2, "One more time!", 7)
 
 
 # ------------------------------
