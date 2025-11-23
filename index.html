@@ -30,6 +30,7 @@
   </head>
 
   <body>
+    <!-- 🔥 BGM -->
     <audio id="bgm" src="bgm.mp3" loop></audio>
 
     <div id="wrap">
@@ -38,28 +39,42 @@
 
     <script>
       const bgm = document.getElementById("bgm");
-      let startedByUser = false;
+      let started = false;
 
-      const startUserInit = () => {
-        if (!startedByUser) {
+      // 1回だけBGM再生の許可を取る（iPhone対策）
+      const startBgm = () => {
+        if (!started) {
           bgm.volume = 1.0;
           bgm.play();
-          startedByUser = true;
+          started = true;
         }
       };
+      window.addEventListener("touchstart", startBgm, { once: true });
+      window.addEventListener("mousedown", startBgm, { once: true });
 
-      window.addEventListener("touchstart", startUserInit, { once: true });
-      window.addEventListener("mousedown", startUserInit, { once: true });
+      // 🔥 Pyxel の scene を監視する
+      let pyxelObj = null;
 
-      window.addEventListener("message", (e) => {
-        if (e.data === "bgm:start") {
-          bgm.currentTime = 0;
-          bgm.play();
-        }
-        if (e.data === "bgm:stop") {
-          bgm.pause();
-        }
+      // PyxelRun が読み込まれたら取得
+      window.addEventListener("pyxel_loaded", (e) => {
+        pyxelObj = e.detail.pyxel;
       });
+
+      // 🔥 毎フレーム scene をチェックして音量調整
+      setInterval(() => {
+        if (!pyxelObj) return;
+
+        // Python側の変数「scene」を読む
+        let scene = pyxelObj.globals.scene;
+
+        if (scene === 1) {
+          // GAME画面 → ミュート
+          bgm.volume = 0.0;
+        } else {
+          // それ以外（TITLE / HOW TO）→ 音量ON
+          bgm.volume = 1.0;
+        }
+      }, 100);
     </script>
   </body>
 </html>
