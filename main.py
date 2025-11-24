@@ -251,33 +251,28 @@ def update():
 
         elif game_phase == 4:
             # 1,2,3! フェーズ
-            # 0〜20: "1"
-            # 21〜41: "2"
-            # 42〜: "3!"
+
             # 3! が出たタイミングで一度だけ CPU 手＆勝敗を決める
             if phase_timer >= 42 and not result_decided:
                 cpu_hand = pyxel.rndi(0, 2)
 
-                # じゃんけん判定
-                diff = (player_hand - cpu_hand + 3) % 3  # 0:あいこ,1:勝ち,2:負け
-                if diff == 0:
-                    result = 0
-                elif diff == 1:
-                    result = 1
+                # 手の意味
+                # 0: ROCK, 1: SCISSORS, 2: PAPER
+
+                if player_hand == cpu_hand:
+                    result = 0  # draw
+                elif (
+                    (player_hand == 0 and cpu_hand == 1)  # ROCK beats SCISSORS
+                    or (player_hand == 1 and cpu_hand == 2)  # SCISSORS beats PAPER
+                    or (player_hand == 2 and cpu_hand == 0)  # PAPER beats ROCK
+                ):
+                    result = 1  # win
                 else:
-                    result = -1
+                    result = -1  # lose
 
                 result_decided = True
 
-                # 勝ちなら連勝・スコア更新（表示は You win! から）
-                if result == 1:
-                    win_streak += 1
-                    if win_streak == 1:
-                        score = 2000
-                    else:
-                        score *= 2
-
-            # 3! が出てから 0.7 秒後（=63フレーム〜）に OK 受付＆結果フェーズへ
+            # 3! が出てから 0.7秒後に OK 受付＆結果フェーズへ
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
                     game_phase = 10  # One more time!
