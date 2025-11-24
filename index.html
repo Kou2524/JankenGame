@@ -5,19 +5,13 @@
     <title>Janken Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Pyxel wasm -->
     <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
 
     <style>
-      html, body {
+      body {
         margin: 0;
-        padding: 0;
         background: #000;
-        height: 100%;
-        overflow: hidden;
-      }
-      pyxel-run, canvas {
-        image-rendering: pixelated;
-        cursor: none !important;
       }
       #wrap {
         position: fixed;
@@ -26,64 +20,78 @@
         place-items: center;
         background: #000;
       }
+      pyxel-run, canvas {
+        image-rendering: pixelated;
+      }
+      /* タップヒント（Pyxelの後ろ） */
+      #hint {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: end center;
+        padding-bottom: 24px;
+        color: #bbb;
+        font: 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
     </style>
   </head>
 
   <body>
-    <!-- 🔊 BGM：タイトル＆HOW TO 用 -->
-    <audio id="bgm1" src="bgm1.mp3" loop></audio>
-    <!-- 🔊 BGM：GAME 用 -->
-    <audio id="bgm2" src="bgm2.mp3" loop></audio>
-
     <div id="wrap">
-      <pyxel-run root="." name="main.py" gamepad="enabled"></pyxel-run>
+      <!-- Pyxelのゲーム実行 -->
+      <pyxel-run root="." name="main.py"></pyxel-run>
     </div>
 
+    <div id="hint">TAP / ENTER TO START</div>
+
     <script>
-      const bgm1 = document.getElementById("bgm1");
-      const bgm2 = document.getElementById("bgm2");
+      /* =====================================================
+         🎵 BGM ロード
+      ===================================================== */
+      let bgm1 = new Audio("bgm1.mp3"); // TITLE & HOW TO
+      let bgm2 = new Audio("bgm2.mp3"); // GAME
 
-      let started = false;   // ユーザーの初回タップ済みか
-      let currentScene = 0;  // Python側から最後に受け取ったシーン
+      // 🔊 全BGMを半分の音量にする
+      bgm1.volume = 0.5;
+      bgm2.volume = 0.5;
 
-      function stopAllBgm() {
-        bgm1.pause();
-        bgm2.pause();
-      }
+      // iOS 対策：自動再生できないのでタップで解禁
+      document.body.addEventListener("touchstart", () => {
+        bgm1.play().then(() => bgm1.pause());
+        bgm2.play().then(() => bgm2.pause());
+      }, { once: true });
 
-      function applyBgmByScene() {
-        if (!started) return; // まだ再生許可もらってない時は何もしない
 
-        stopAllBgm();
+      /* =====================================================
+         🎮 Pyxel側から呼ばれる BGM 切り替え関数
+         set_bgm_scene(scene)
+         0 = TITLE
+         1 = GAME
+         2 = HOW TO
+      ===================================================== */
+      function set_bgm_scene(scene) {
 
-        if (currentScene === 0 || currentScene === 2) {
+        if (scene === 0) {
+          // TITLE
+          bgm2.pause();
           bgm1.currentTime = 0;
           bgm1.play();
-        } else if (currentScene === 1) {
+
+        } else if (scene === 1) {
+          // GAME
+          bgm1.pause();
           bgm2.currentTime = 0;
           bgm2.play();
+
+        } else if (scene === 2) {
+          // HOW TO → bgm1
+          bgm2.pause();
+          bgm1.currentTime = 0;
+          bgm1.play();
         }
       }
 
-      // iOS 対策：どこか1回タップ/クリックされたら再生許可
-      function userStart() {
-        if (!started) {
-          started = true;
-          applyBgmByScene();  // 今のシーンに応じた曲を流す
-        }
-      }
-
-      window.addEventListener("touchstart", userStart, { once: true });
-      window.addEventListener("mousedown", userStart, { once: true });
-
-      // 🔥 Python から呼ばれる関数（from js import set_bgm_scene）
-      function set_bgm_scene(scene) {
-        // Pyodide からは Number で飛んでくる想定
-        currentScene = Number(scene);
-        applyBgmByScene();
-      }
-
-      // グローバルに公開しておく（念のため）
+      // Python側から呼べるように公開
       window.set_bgm_scene = set_bgm_scene;
     </script>
   </body>
