@@ -403,13 +403,13 @@ def draw_game():
 
         # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
         if score_fade_timer > 0:
-            if score_fade_timer > 40:
+            if score_fade_timer > 10:      # 明るい（最初の1/3）
                 col_main = 10
                 col_score = 7
-            elif score_fade_timer > 20:
+            elif score_fade_timer > 5:     # 中くらい（中盤1/3）
                 col_main = 5
                 col_score = 6
-            else:
+            else:                          # 暗い（ラスト1/3）
                 col_main = 1
                 col_score = 5
 
