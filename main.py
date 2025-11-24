@@ -371,8 +371,8 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
-    # 右上 WIN / SCORE 表示（連勝しているときのみ）
-    if win_streak > 0:
+    # 右上 WIN / SCORE 表示（結果フェーズに入ってから表示）
+    if win_streak > 0 and game_phase >= 6:
         win_txt = f"WIN {win_streak}"
         win_x = SCREEN_W - len(win_txt) * 4 - 4
         pyxel.text(win_x, 4, win_txt, 10)
