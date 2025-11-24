@@ -20,20 +20,38 @@ SCREEN_H = 120
 pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
 pyxel.mouse(False)
 
+# ==== 手アイコン関連 ====
+HAND_ICON_SIZE = 16
+HAND_IMG_INDEX = [0, 1, 2]  # ROCK, SCISSORS, PAPER
 
-def load_hand_images() -> None:
+
+def _load_hand_images():
     """
-    じゃんけんの手アイコンを image(0) に読み込む
-    ファイル名:
-      rock.png, scissors.png, paper.png
+    rock.png / scissors.png / paper.png を読み込みつつ、
+    左上(0,0)の色を背景色とみなして 0 番色に差し替えて透過させる
     """
-    pyxel.image(0).load(0, 0, "rock.png")
-    pyxel.image(0).load(16, 0, "scissors.png")
-    pyxel.image(0).load(32, 0, "paper.png")
+    files = ["rock.png", "scissors.png", "paper.png"]
+
+    for i, fname in enumerate(files):
+        img = pyxel.image(HAND_IMG_INDEX[i])
+        img.load(0, 0, fname)
+
+        # 左上の色を背景色とみなす
+        bg_col = img.pget(0, 0)
+        for y in range(HAND_ICON_SIZE):
+            for x in range(HAND_ICON_SIZE):
+                if img.pget(x, y) == bg_col:
+                    img.pset(x, y, 0)  # 0 = 透過色にする
 
 
-# 手画像読み込み
-load_hand_images()
+def draw_hand_icon(hand: int, x: int, y: int):
+    """指定した手アイコンを (x, y) に描画"""
+    img_idx = HAND_IMG_INDEX[hand]
+    pyxel.blt(x, y, img_idx, 0, 0, HAND_ICON_SIZE, HAND_ICON_SIZE, 0)
+
+
+# 画像を読み込む
+_load_hand_images()
 
 # 0: TITLE, 1: GAME, 2: HOW TO
 scene = 0
@@ -72,22 +90,24 @@ continue_cursor = 0    # 0: YES, 1: NO
 
 HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 
-# 各手のスプライトU座標（image(0) 上）
-HAND_SPRITE_U = [0, 16, 32]
-
-# 連勝 & スコア
+# 連勝数 & スコア
 win_streak = 0
 score = 0
-max_score = 0
-show_win_streak = False  # 一度も勝ってないときは表示しない
+max_score = 0  # タイトル画面で表示するハイスコア
 
 
 # ------------------------------
 # ヘルパー
 # ------------------------------
-def draw_centered_text(y: int, text: str, col: int) -> None:
+def draw_centered_text_screen(y: int, text: str, col: int) -> None:
     text_w = len(text) * 4
     x = (SCREEN_W - text_w) // 2
+    pyxel.text(x, y, text, col)
+
+
+def draw_centered_text_panel(panel_x: int, panel_w: int, y: int, text: str, col: int) -> None:
+    text_w = len(text) * 4
+    x = panel_x + (panel_w - text_w) // 2
     pyxel.text(x, y, text, col)
 
 
@@ -119,12 +139,11 @@ def is_right_pressed() -> bool:
 
 def reset_game() -> None:
     """
-    タイトルからゲームを開始するときに状態をリセット
-    （連勝やスコアもここでクリア）
+    ゲーム開始時に状態をリセット
     """
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
-    global win_streak, score, show_win_streak
+    global win_streak, score
 
     game_phase = 0
     phase_timer = 0
@@ -134,21 +153,19 @@ def reset_game() -> None:
     hand_cursor = 0
     continue_cursor = 0
     result_decided = False
-
+    # 連勝・スコアもリセット
     win_streak = 0
     score = 0
-    show_win_streak = False
-    # BGM は scene 切り替え時にやるのでここでは呼ばない
 
 
-def draw_next_indicator(panel_y: int) -> None:
+def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
     """
     枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
     if (pyxel.frame_count % 30) < 15:
-        cx = SCREEN_W - 10     # 中央X（右寄せ）
-        top_y = panel_y + 22   # 一番上のライン
-        base_y = top_y + 4     # 下の頂点ライン（少し下）
+        cx = panel_x + panel_w - 10  # 右寄せ
+        top_y = panel_y + 22         # 一番上のライン
+        base_y = top_y + 4           # 下の頂点ライン（少し下）
 
         # 下向き▼三角（幅4px）
         pyxel.tri(
@@ -159,34 +176,6 @@ def draw_next_indicator(panel_y: int) -> None:
         )
 
 
-def draw_battle_hands(panel_y: int) -> None:
-    """
-    プレイヤー(左) / CPU(右) の手を表示
-    CPU側は 180° 回転して、向かい合ってる感じにする
-    """
-    # 描画位置（枠の1px上）
-    y = panel_y - 1 - 16
-    left_x = SCREEN_W // 2 - 8 - 20   # プレイヤー
-    right_x = SCREEN_W // 2 - 8 + 20  # CPU
-
-    # プレイヤーの手
-    player_u = HAND_SPRITE_U[player_hand]
-    pyxel.blt(left_x, y, 0, player_u, 0, 16, 16, 0)
-
-    # CPU の手（16x16 を 180°回転 = 横＆縦反転）
-    cpu_u = HAND_SPRITE_U[cpu_hand]
-    pyxel.blt(
-        right_x + 16,  # 反転描画なので +16, +16 して位置合わせ
-        y + 16,
-        0,
-        cpu_u + 15,    # 元画像の右下から
-        15,
-        -16,
-        -16,
-        0,
-    )
-
-
 # ------------------------------
 # UPDATE
 # ------------------------------
@@ -194,7 +183,7 @@ def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
-    global win_streak, score, max_score, show_win_streak
+    global win_streak, score, max_score
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -230,7 +219,7 @@ def update():
         phase_timer += 1
 
         if game_phase == 0:
-            # 「JANKEN GAME begins!」
+            # 「Janken game begins!」
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
@@ -280,25 +269,21 @@ def update():
 
                 result_decided = True
 
-            # 3! が出てから 0.7 秒後（=63フレーム〜）に OK 受付＆結果フェーズへ
-            if phase_timer >= 63 and is_ok_pressed():
-                if result == 0:
-                    # Draw
-                    game_phase = 10  # One more time!
-                elif result == 1:
-                    # Win
+                # 勝ちなら連勝・スコア更新（表示は You win! から）
+                if result == 1:
                     win_streak += 1
                     if win_streak == 1:
                         score = 2000
                     else:
-                        score *= 2  # 倍々ゲーム
-                    show_win_streak = True
+                        score *= 2
+
+            # 3! が出てから 0.7 秒後（=63フレーム〜）に OK 受付＆結果フェーズへ
+            if phase_timer >= 63 and is_ok_pressed():
+                if result == 0:
+                    game_phase = 10  # One more time!
+                elif result == 1:
                     game_phase = 6   # You win!
                 else:
-                    # Lose
-                    win_streak = 0
-                    score = 0
-                    show_win_streak = False
                     game_phase = 7   # You lose...
                 phase_timer = 0
 
@@ -309,11 +294,14 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 7:
-            # 「You lose...」→ タイトルへ（強制終了）
+            # 「You lose...」
+            # 負けた瞬間に連勝＆スコアをリセット（描画も非表示になる）
+            win_streak = 0
+            score = 0
+
             if is_ok_pressed():
                 scene = 0
                 menu_idx = 0
-                reset_game()
 
         elif game_phase == 8:
             # 「Continue?」→ ボタンで YES/NO 選択へ
@@ -333,15 +321,14 @@ def update():
                     game_phase = 1
                     phase_timer = 0
                     result_decided = False
-                else:  # NO → タイトルへ & MAX SCORE 更新
+                else:  # NO → ここでハイスコア更新
                     if score > max_score:
                         max_score = score
                     scene = 0
                     menu_idx = 0
-                    reset_game()
 
         elif game_phase == 10:
-            # 「One more time!」→ もう一度手選びへ（引き分け）
+            # 「One more time!」→ もう一度手選びへ
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
@@ -358,13 +345,11 @@ def update():
 # DRAW (GAME)
 # ------------------------------
 def draw_game():
-    # 下パネルの高さ
+    # 下パネルの高さ・幅
     panel_h = 32
-    panel_y = SCREEN_H - panel_h
-
-    # 枠の幅：150px（中央に配置）
     panel_w = 150
     panel_x = (SCREEN_W - panel_w) // 2
+    panel_y = SCREEN_H - panel_h
 
     # 下パネル
     pyxel.rect(panel_x, panel_y, panel_w, panel_h, 1)    # 中
@@ -373,8 +358,15 @@ def draw_game():
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
 
-    # 右上 WIN / SCORE 表示
-    if show_win_streak and win_streak > 0:
+    # 手アイコンの位置（プレイヤー）
+    player_icon_x = panel_x + panel_w // 2 - HAND_ICON_SIZE // 2
+    player_icon_y = panel_y - HAND_ICON_SIZE - 1
+    # CPUアイコン（プレイヤーの上側）
+    cpu_icon_x = player_icon_x
+    cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
+
+    # 右上 WIN / SCORE 表示（連勝しているときのみ）
+    if win_streak > 0:
         win_txt = f"WIN {win_streak}"
         win_x = SCREEN_W - len(win_txt) * 4 - 4
         pyxel.text(win_x, 4, win_txt, 10)
@@ -385,12 +377,12 @@ def draw_game():
 
     # ===== 各フェーズ =====
     if game_phase == 0:
-        draw_centered_text(msg_center_y, "JANKEN GAME begins!", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "JANKEN GAME begins!", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 1:
-        draw_centered_text(msg_center_y, "Which hand should I play?", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Which hand should I play?", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 2:
         # 手の選択肢：1行まるごと中央揃え
@@ -412,15 +404,12 @@ def draw_game():
                 # 右向きの小さな三角（幅3px・高さ4px）
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
-        # ★ 選択中の手のプレビュー（枠の1px上、中央）
-        hand_u = HAND_SPRITE_U[hand_cursor]
-        preview_x = SCREEN_W // 2 - 8          # 16px の半分だけ左に
-        preview_y = panel_y - 1 - 16           # 枠の1px上に16pxの画像
-        pyxel.blt(preview_x, preview_y, 0, hand_u, 0, 16, 16, 0)
+        # 選択中の手アイコンをパネルの真上に表示
+        draw_hand_icon(hand_cursor, player_icon_x, player_icon_y)
 
     elif game_phase == 3:
-        draw_centered_text(msg_center_y, "Are you ready?", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Are you ready?", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 4:
         # 1,2,3! の表示（0.7秒＝21フレーム間隔）
@@ -430,39 +419,35 @@ def draw_game():
             text = "2"
         else:
             text = "3!"
-        draw_centered_text(msg_center_y, text, 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # 3! が出て勝敗が決まった後は、両手を表示
+        # 3! の表示になってから、手アイコンを2つ表示（ネタバレ防止）
         if phase_timer >= 42 and result_decided:
-            draw_battle_hands(panel_y)
+            # プレイヤーの手
+            draw_hand_icon(player_hand, player_icon_x, player_icon_y)
+            # CPU の手（プレイヤーの上側に表示）
+            draw_hand_icon(cpu_hand, cpu_icon_x, cpu_icon_y)
 
         # 3! が出てから0.7秒後に ▼ 点滅開始
         if phase_timer >= 63:
-            draw_next_indicator(panel_y)
+            draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 6:
-        # 勝ち画面：両手＋メッセージ
-        draw_battle_hands(panel_y)
-        draw_centered_text(msg_center_y, "You win!", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "You win!", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 7:
-        # 負け画面：両手は出さず、メッセージのみ
-        draw_centered_text(msg_center_y, "You lose...", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "You lose...", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 8:
-        # Continue? だけ表示（両手も出しっぱにする）
-        draw_battle_hands(panel_y)
-        draw_centered_text(msg_center_y, "Continue?", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Continue?", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 9:
-        # Continue? を少し上、その下に YES / NO ＋両手
-        draw_battle_hands(panel_y)
-
+        # Continue? を少し上、その下に YES / NO
         cont_y = msg_center_y - 6
-        draw_centered_text(cont_y, "Continue?", 7)
+        draw_centered_text_panel(panel_x, panel_w, cont_y, "Continue?", 7)
 
         labels = ["YES", "NO"]
         slot_w = 45
@@ -483,8 +468,8 @@ def draw_game():
                 pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
 
     elif game_phase == 10:
-        draw_centered_text(msg_center_y, "One more time!", 7)
-        draw_next_indicator(panel_y)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "One more time!", 7)
+        draw_next_indicator(panel_x, panel_y, panel_w)
 
 
 # ------------------------------
@@ -495,17 +480,17 @@ def draw():
 
     if scene == 0:
         # ===== TITLE =====
-        draw_centered_text(30, "JANKEN GAME", 7)
+        draw_centered_text_screen(30, "JANKEN GAME", 7)
 
         # MAX SCORE 表示（あれば）
         if max_score > 0:
             label = "MAX SCORE"
             label_x = SCREEN_W - len(label) * 4 - 4
-            pyxel.text(label_x, 16, label, 10)
+            pyxel.text(label_x, 4, label, 10)
 
-            score_txt = f"{max_score}"
+            score_txt = str(max_score)
             score_x = SCREEN_W - len(score_txt) * 4 - 4
-            pyxel.text(score_x, 24, score_txt, 7)
+            pyxel.text(score_x, 12, score_txt, 7)
 
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)
@@ -530,7 +515,7 @@ def draw():
 
     elif scene == 2:
         # ===== HOW TO =====
-        draw_centered_text(20, "HOW TO PLAY", 10)
+        draw_centered_text_screen(20, "HOW TO PLAY", 10)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
         pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
         pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
