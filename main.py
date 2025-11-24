@@ -315,7 +315,7 @@ def update():
 
             # ★負けた瞬間にフェード開始（1回だけ）
             if win_streak > 0 and score_fade_timer == 0:
-                score_fade_timer = 30  # 30フレーム＝約1秒くらい
+                score_fade_timer = 15  # 30フレーム＝約0.5秒くらい
 
             # フェードタイマー進行
             if score_fade_timer > 0:
