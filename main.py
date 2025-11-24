@@ -280,29 +280,29 @@ def update():
 
                 result_decided = True
 
-    # 3! が出てから 0.7秒後に OK 受付
-    if phase_timer >= 63 and is_ok_pressed():
-        if result == 0:
-            # あいこ：スコアも連勝もそのまま
-            game_phase = 10  # One more time!
+            # 3! が出てから 0.7秒後に OK 受付
+            if phase_timer >= 63 and is_ok_pressed():
+                if result == 0:
+                    # あいこ：スコアも連勝もそのまま
+                    game_phase = 10  # One more time!
 
-        elif result == 1:
-            # ★ここで初めてスコア＆連勝を更新
-            win_streak += 1
-            if win_streak == 1:
-                score = 2000
-            else:
-                score *= 2
+                elif result == 1:
+                    # ★ここで初めてスコア＆連勝を更新
+                    win_streak += 1
+                    if win_streak == 1:
+                        score = 2000
+                    else:
+                        score *= 2
 
-            score_unlocked = True   # 表示解禁（1回目の勝ちのとき）
+                    score_unlocked = True   # 表示解禁（1回目の勝ちのとき）
 
-            game_phase = 6          # You win!
+                    game_phase = 6          # You win!
 
-        else:
-            # 負け：スコアはいじらず、game_phase==7 でフェード処理
-            game_phase = 7          # You lose...
+                else:
+                    # 負け：スコアはいじらず、game_phase==7 でフェード処理
+                    game_phase = 7          # You lose...
 
-        phase_timer = 0
+                phase_timer = 0
 
         elif game_phase == 6:
             # 「You win!」 → Continue? へ
