@@ -95,6 +95,9 @@ win_streak = 0
 score = 0
 max_score = 0  # タイトル画面で表示するハイスコア
 
+# スコア表示の状態
+score_unlocked = False      # 一度でも「You win!」を出したら True
+score_fade_timer = 0        # 負けたときのフェード用タイマー
 
 # ------------------------------
 # ヘルパー
@@ -144,6 +147,7 @@ def reset_game() -> None:
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
     global win_streak, score
+    global score_unlocked, score_fade_timer  # ★ここ追加
 
     game_phase = 0
     phase_timer = 0
@@ -153,9 +157,12 @@ def reset_game() -> None:
     hand_cursor = 0
     continue_cursor = 0
     result_decided = False
+
     # 連勝・スコアもリセット
     win_streak = 0
     score = 0
+    score_unlocked = False      # ★追加
+    score_fade_timer = 0        # ★追加
 
 
 def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
@@ -184,6 +191,7 @@ def update():
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
     global win_streak, score, max_score
+    global score_unlocked, score_fade_timer
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -289,6 +297,7 @@ def update():
                     game_phase = 10  # One more time!
                 elif result == 1:
                     game_phase = 6   # You win!
+                    score_unlocked = True   # ★ここで「スコア表示解禁」
                 else:
                     game_phase = 7   # You lose...
                 phase_timer = 0
@@ -299,11 +308,21 @@ def update():
                 game_phase = 8
                 phase_timer = 0
 
-        elif game_phase == 7:
+                elif game_phase == 7:
             # 「You lose...」
-            # 負けた瞬間に連勝＆スコアをリセット（描画も非表示になる）
-            win_streak = 0
-            score = 0
+
+            # ★負けた瞬間にフェード開始（1回だけ）
+            if win_streak > 0 and score_fade_timer == 0:
+                score_fade_timer = 60  # 60フレーム＝約2秒くらい
+
+            # フェードタイマー進行
+            if score_fade_timer > 0:
+                score_fade_timer -= 1
+                # フェードが終わったら実際にリセット
+                if score_fade_timer == 0:
+                    win_streak = 0
+                    score = 0
+                    score_unlocked = False
 
             if is_ok_pressed():
                 scene = 0
@@ -371,15 +390,35 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
-    # 右上 WIN / SCORE 表示（結果フェーズに入ってから表示）
-    if win_streak > 0 and game_phase >= 6:
+        # 右上 WIN / SCORE 表示
+    # - 一度でも「You win!」を出したら、負けるまでずっと表示
+    # - 負けたあとは score_fade_timer を使ってゆっくり消える
+    show_score = (win_streak > 0 and (score_unlocked or game_phase >= 6)) or (score_fade_timer > 0)
+
+    if show_score:
+        # デフォルトの色
+        col_main = 10   # WIN
+        col_score = 7   # SCORE
+
+        # フェード中はだんだん暗い色にしていく
+        if score_fade_timer > 0:
+            if score_fade_timer > 40:
+                col_main = 10
+                col_score = 7
+            elif score_fade_timer > 20:
+                col_main = 5
+                col_score = 6
+            else:
+                col_main = 1
+                col_score = 5
+
         win_txt = f"WIN {win_streak}"
         win_x = SCREEN_W - len(win_txt) * 4 - 4
-        pyxel.text(win_x, 4, win_txt, 10)
+        pyxel.text(win_x, 4, win_txt, col_main)
 
         score_txt = f"SCORE {score}"
         score_x = SCREEN_W - len(score_txt) * 4 - 4
-        pyxel.text(score_x, 12, score_txt, 7)
+        pyxel.text(score_x, 12, score_txt, col_score)
 
     # ===== 各フェーズ =====
     if game_phase == 0:
