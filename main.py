@@ -55,7 +55,8 @@ continue_cursor = 0
 
 win_streak = 0          # 連勝数
 show_win_streak = False # WIN/SCORE を表示するか
-score = 0               # スコア
+score = 0               # 現在スコア
+max_score = 0           # 最高スコア
 
 HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 
@@ -96,7 +97,7 @@ def is_right_pressed():
 
 def reset_game():
     """
-    ゲーム開始時に状態をリセット（連勝はリセットしない）
+    ゲーム開始時に状態をリセット（連勝とスコアはそのまま）
     """
     global game_phase, phase_timer, player_hand, cpu_hand
     global result, hand_cursor, continue_cursor, result_decided
@@ -110,7 +111,7 @@ def reset_game():
     hand_cursor = 0
     continue_cursor = 0
     result_decided = False
-    show_win_streak = False  # 最初は非表示
+    show_win_streak = False  # ラウンド開始時は非表示
 
 
 def reset_streak_and_score():
@@ -150,7 +151,7 @@ def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
-    global win_streak, show_win_streak
+    global win_streak, show_win_streak, score, max_score
 
     # BGM切り替え
     if scene != last_scene:
@@ -173,7 +174,7 @@ def update():
         # 決定
         if is_ok_pressed():
             if menu_idx == 0:  # START
-                reset_streak_and_score()  # タイトルから始めるときは毎回リセット
+                reset_streak_and_score()  # 新規プレイは0から
                 reset_game()
                 scene = 1
             else:              # HOW TO
@@ -234,21 +235,24 @@ def update():
                     update_score()
                     game_phase = 6
                 else:
-                    # 負け → 連勝&スコアリセット
-                    reset_streak_and_score()
+                    # 負け → その瞬間に連勝・スコアを0にして見せる
+                    win_streak = 0
+                    score = 0
+                    show_win_streak = True  # WIN 0 / SCORE 0 を表示
                     game_phase = 7
                 phase_timer = 0
 
         elif game_phase == 6:
-            # 勝った画面 → 連勝表示ON（スコアも一緒に）
+            # 勝ち画面 → 連勝表示ON（スコアも一緒）
             show_win_streak = True
             if is_ok_pressed():
                 game_phase = 8
                 phase_timer = 0
 
         elif game_phase == 7:
-            # 負け → タイトルへ
+            # 負け → スコアは0のまま表示、MAXは更新しない
             if is_ok_pressed():
+                reset_streak_and_score()
                 scene = 0
 
         elif game_phase == 8:
@@ -269,7 +273,9 @@ def update():
                     phase_timer = 0
                     result_decided = False
                 else:
-                    # NO → タイトルへ & 連勝/スコアリセット
+                    # NO → MAX SCORE 更新してからリセット
+                    if score > max_score:
+                        max_score = score
                     reset_streak_and_score()
                     scene = 0
 
@@ -301,10 +307,11 @@ def draw_game():
     msg_y = panel_y + panel_h // 2 - 3
 
     # 右上 WIN / SCORE 表示
-    if show_win_streak and win_streak > 0:
+    # 負け画面(game_phase==7)のときは WIN 0 / SCORE 0 も見せたい
+    if show_win_streak and (win_streak > 0 or game_phase == 7):
         win_txt = f"WIN {win_streak}"
         win_x = SCREEN_W - len(win_txt) * 4 - 4
-        pyxel.text(win_x, 4, win_txt, 10)  # 黄色っぽい色
+        pyxel.text(win_x, 4, win_txt, 10)
 
         score_txt = f"SCORE {score}"
         score_x = SCREEN_W - len(score_txt) * 4 - 4
@@ -391,7 +398,14 @@ def draw():
     pyxel.cls(0)
 
     if scene == 0:
+        # タイトル
         draw_centered_text_panel(0, SCREEN_W, 30, "JANKEN GAME", 7)
+
+        # MAX SCORE 表示（あるときだけ）
+        if max_score > 0:
+            txt = f"MAX SCORE {max_score}"
+            x = SCREEN_W - len(txt) * 4 - 4
+            pyxel.text(x, 4, txt, 10)
 
         for i, (label, x, y, w, h) in enumerate(MENU):
             hi = (i == menu_idx)
