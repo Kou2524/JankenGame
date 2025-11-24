@@ -280,27 +280,23 @@ def update():
 
                 result_decided = True
 
-                # ★ここで連勝＆スコア更新
+                # ★ここで連勝＆スコア更新（勝ちだけ）
                 if result == 1:
                     win_streak += 1
                     if win_streak == 1:
                         score = 2000
                     else:
                         score *= 2
-                        
-                    # ★スコア表示を解禁
-                    score_unlocked = True
-                #else:
-                    # 連勝リセットしたいならここで0にする
-                    #win_streak = 0←0だとあいこでも消えちゃう！
+                # draw / lose のときはここではリセットしない
+                # 負けたときは game_phase == 7 でフェード→リセット
 
-            # 3! が出てから 0.7秒後に OK 受付＆結果フェーズへ
+            # 3! が出てから 0.7秒後に OK 受付
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
                     game_phase = 10  # One more time!
                 elif result == 1:
                     game_phase = 6   # You win!
-                    score_unlocked = True   # ★ここで初めて表示を解禁！
+                    score_unlocked = True  # ★このタイミングで表示を解禁！
                 else:
                     game_phase = 7   # You lose...
                 phase_timer = 0
@@ -399,11 +395,10 @@ def draw_game():
     show_score = score_unlocked or (score_fade_timer > 0)
 
     if show_score:
-        # デフォルトの色
         col_main = 10   # WIN
         col_score = 7   # SCORE
 
-        # フェード中はだんだん暗くする
+        # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
         if score_fade_timer > 0:
             if score_fade_timer > 40:
                 col_main = 10
