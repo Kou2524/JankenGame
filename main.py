@@ -93,7 +93,7 @@ HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 # 連勝数 & スコア
 win_streak = 0
 score = 0
-max_score = 0  # タイトル画面で表示するハイスコア
+high_score = 0  # タイトル画面で表示するハイスコア
 
 # スコア表示の状態
 score_unlocked = False      # 一度でも「You win!」を出したら True
@@ -190,7 +190,7 @@ def update():
     global scene, last_scene, menu_idx
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
-    global win_streak, score, max_score
+    global win_streak, score, high_score
     global score_unlocked, score_fade_timer
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
@@ -315,7 +315,7 @@ def update():
 
             # ★負けた瞬間にフェード開始（1回だけ）
             if win_streak > 0 and score_fade_timer == 0:
-                score_fade_timer = 60  # 60フレーム＝約2秒くらい
+                score_fade_timer = 30  # 30フレーム＝約1秒くらい
 
             # フェードタイマー進行
             if score_fade_timer > 0:
@@ -349,8 +349,8 @@ def update():
                     phase_timer = 0
                     result_decided = False
                 else:  # NO → ここでハイスコア更新
-                    if score > max_score:
-                        max_score = score
+                    if score > high_score:
+                        high_score = score
                     scene = 0
                     menu_idx = 0
 
@@ -528,13 +528,13 @@ def draw():
         # ===== TITLE =====
         draw_centered_text_screen(30, "JANKEN GAME", 7)
 
-        # MAX SCORE 表示（あれば）
-        if max_score > 0:
-            label = "MAX SCORE"
+        # HIGH SCORE 表示（あれば）
+        if high_score > 0:
+            label = "HIGH SCORE"
             label_x = SCREEN_W - len(label) * 4 - 4
             pyxel.text(label_x, 4, label, 10)
 
-            score_txt = str(max_score)
+            score_txt = str(high_score)
             score_x = SCREEN_W - len(score_txt) * 4 - 4
             pyxel.text(score_x, 12, score_txt, 7)
 
