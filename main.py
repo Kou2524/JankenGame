@@ -308,7 +308,7 @@ def update():
                 game_phase = 8
                 phase_timer = 0
 
-                elif game_phase == 7:
+        elif game_phase == 7:
             # 「You lose...」
 
             # ★負けた瞬間にフェード開始（1回だけ）
