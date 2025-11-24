@@ -287,6 +287,9 @@ def update():
                         score = 2000
                     else:
                         score *= 2
+                        
+                    # ★スコア表示を解禁
+                    score_unlocked = True
                 else:
                     # 連勝リセットしたいならここで0にする
                     win_streak = 0
@@ -390,17 +393,17 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
-        # 右上 WIN / SCORE 表示
-    # - 一度でも「You win!」を出したら、負けるまでずっと表示
-    # - 負けたあとは score_fade_timer を使ってゆっくり消える
-    show_score = (win_streak > 0 and (score_unlocked or game_phase >= 6)) or (score_fade_timer > 0)
+    # 右上 WIN / SCORE 表示
+    # - 一度でも勝って score_unlocked が True になったら
+    #   負けてフェードが終わるまでずっと表示
+    # - 負けた後は score_fade_timer でゆっくり消える
+    show_score = (win_streak > 0 and score_unlocked) or (score_fade_timer > 0)
 
     if show_score:
-        # デフォルトの色
-        col_main = 10   # WIN
-        col_score = 7   # SCORE
+        col_main = 10
+        col_score = 7
 
-        # フェード中はだんだん暗い色にしていく
+        # フェード中はだんだん暗く
         if score_fade_timer > 0:
             if score_fade_timer > 40:
                 col_main = 10
