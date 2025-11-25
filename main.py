@@ -1,4 +1,4 @@
-    import pyxel
+import pyxel
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
