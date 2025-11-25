@@ -391,7 +391,7 @@ def draw_game():
 
     # 手アイコンの位置（プレイヤー）
     player_icon_x = panel_x + panel_w // 2 - HAND_ICON_SIZE // 2
-    player_icon_y = panel_y - HAND_ICON_SIZE - 1
+    player_icon_y = panel_y - HAND_ICON_SIZE - 9
     # CPUアイコン（プレイヤーの上側）
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
