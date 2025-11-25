@@ -1,4 +1,4 @@
-import pyxel
+    import pyxel
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
@@ -477,8 +477,7 @@ def draw_game():
         else:
             text = "3!"
 
-        # ★ 3! の数字を画面中央に表示
-        draw_centered_text_panel(panel_x, panel_w, msg_center_y, text)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
         # ★ ここに中央ドーン処理を追加！
         if text == "3!":
