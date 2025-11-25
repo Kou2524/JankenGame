@@ -381,6 +381,10 @@ def draw_game():
     # 下パネル
     pyxel.rect(panel_x, panel_y, panel_w, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, panel_w, panel_h, 7)   # 枠
+    
+    # 画面中央（手を真ん中に置く用）
+    center_x = SCREEN_W // 2 - 16  # 32pxの半分
+    center_y = SCREEN_H // 2 - 16
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
@@ -454,8 +458,9 @@ def draw_game():
         draw_hand_icon(hand_cursor, player_icon_x, player_icon_y)
 
     elif game_phase == 3:
-        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Are you ready?", 7)
-        draw_next_indicator(panel_x, panel_y, panel_w)
+        # --- 3! のカウントダウン中：画面ど真ん中に表示 ---
+        draw_hand_icon(player_hand, center_x, center_y - 10)  # 自分の手（上）
+        draw_hand_icon(cpu_hand,   center_x, center_y + 10)  # CPUの手（下）
 
     elif game_phase == 4:
         # 1,2,3! の表示（0.7秒＝21フレーム間隔）
