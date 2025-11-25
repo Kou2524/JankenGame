@@ -476,17 +476,18 @@ def draw_game():
             text = "2"
         else:
             text = "3!"
-
+        
+        # 数字（1,2,3!）をセンター表示
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # 3! の表示になってから、手アイコンを2つ表示（ネタバレ防止）
-        if phase_timer >= 42 and result_decided:
-            # プレイヤーの手
-            draw_hand_icon(player_hand, player_icon_x, player_icon_y)
-            # CPU の手（プレイヤーの上側に表示）
-            draw_hand_icon(cpu_hand, cpu_icon_x, cpu_icon_y)
+        # 🔥 3! のときだけ、画面中央に手を2つ表示
+        if text == "3!":
+            # CPU（上）
+            draw_hand_icon(cpu_hand,    center_x, center_y - 10)
+            # プレイヤー（下）
+            draw_hand_icon(player_hand, center_x, center_y + 10)
 
-        # 3! が出てから0.7秒後に ▼ 点滅開始
+        # 3! が出てから0.7秒後に ▶ 点滅開始（今まで通り）
         if phase_timer >= 63:
             draw_next_indicator(panel_x, panel_y, panel_w)
 
