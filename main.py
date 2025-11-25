@@ -479,11 +479,6 @@ def draw_game():
 
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # ★ ここに中央ドーン処理を追加！
-        if text == "3!":
-            draw_hand_icon(player_hand, center_x, center_y - 10)
-            draw_hand_icon(cpu_hand,    center_x, center_y + 10)
-
         # 3! の表示になってから、手アイコンを2つ表示（ネタバレ防止）
         if phase_timer >= 42 and result_decided:
             # プレイヤーの手
