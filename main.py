@@ -253,7 +253,7 @@ def update():
         elif game_phase == 3:
             # 「Are you ready?」
             if is_ok_pressed():
-                game_phase = 3
+                game_phase = 4
                 phase_timer = 0
                 result_decided = False  # 念のためリセット
 
