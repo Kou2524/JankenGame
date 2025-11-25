@@ -459,7 +459,13 @@ def draw_game():
 
     elif game_phase == 3:
         # 「Are you ready?」画面
-        draw_centered_text_panel(panel_x, panel_w, "Are you ready?")
+        draw_centered_text_panel(
+            panel_x,
+            panel_w,
+            msg_center_y,       # ← ここ追加（真ん中のY座標）
+            "Are you ready?",   # ← テキスト
+            7                   # ← 色（白っぽい色、他のフェーズと合わせてOK）
+        )
         draw_next_indicator(panel_x, panel_y, panel_w)
     
     elif game_phase == 4:
