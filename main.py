@@ -253,7 +253,7 @@ def update():
         elif game_phase == 3:
             # 「Are you ready?」
             if is_ok_pressed():
-                game_phase = 4
+                game_phase = 3
                 phase_timer = 0
                 result_decided = False  # 念のためリセット
 
@@ -458,19 +458,26 @@ def draw_game():
         draw_hand_icon(hand_cursor, player_icon_x, player_icon_y)
 
     elif game_phase == 3:
-        # --- 3! のカウントダウン中：画面ど真ん中に表示 ---
-        draw_hand_icon(player_hand, center_x, center_y - 10)  # 自分の手（上）
-        draw_hand_icon(cpu_hand,   center_x, center_y + 10)  # CPUの手（下）
-
+        # 「Are you ready?」画面
+        draw_centered_text_panel(panel_x, panel_w, "Are you ready?")
+        draw_next_indicator(panel_x, panel_y, panel_w)
+    
     elif game_phase == 4:
-        # 1,2,3! の表示（0.7秒＝21フレーム間隔）
+        # 1,2,3! の表示 (0.7秒 = 21フレーム間隔)
         if phase_timer < 21:
             text = "1"
         elif phase_timer < 42:
             text = "2"
         else:
             text = "3!"
-        draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
+
+        # ★ 3! の数字を画面中央に表示
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, text)
+
+        # ★ ここに中央ドーン処理を追加！
+        if text == "3!":
+            draw_hand_icon(player_hand, center_x, center_y - 10)
+            draw_hand_icon(cpu_hand,    center_x, center_y + 10)
 
         # 3! の表示になってから、手アイコンを2つ表示（ネタバレ防止）
         if phase_timer >= 42 and result_decided:
