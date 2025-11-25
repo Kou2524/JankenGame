@@ -47,7 +47,7 @@ def _load_hand_images():
 def draw_hand_icon(hand: int, x: int, y: int):
     """指定した手アイコンを (x, y) に描画"""
     img_idx = HAND_IMG_INDEX[hand]
-    pyxel.blt(x, y, img_idx, 0, 0, HAND_ICON_SIZE, HAND_ICON_SIZE, 0)
+    pyxel.blt(x, y, img_idx, 0, 0, 16, 16, 0, 48, 48)
 
 
 # 画像を読み込む
