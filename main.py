@@ -1,5 +1,12 @@
 import pyxel
 
+# 画面サイズ
+SCREEN_W = 160
+SCREEN_H = 120
+
+pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
+pyxel.mouse(False)
+
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
     from js import set_bgm_scene as _set_bgm_scene_js
@@ -28,12 +35,6 @@ HAND_X = SCREEN_W // 2 - HAND_W // 2   # 横ど真ん中
 HAND_Y = 40                             # 選択肢画面の手の高さに合わせて微調整
 
 
-# 画面サイズ
-SCREEN_W = 160
-SCREEN_H = 120
-
-pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
-pyxel.mouse(False)
 
 # ==== 手アイコン関連 ====
 HAND_ICON_SIZE = 16
