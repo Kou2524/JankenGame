@@ -1,12 +1,5 @@
 import pyxel
 
-# 画面サイズ
-SCREEN_W = 160
-SCREEN_H = 120
-
-pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
-pyxel.mouse(False)
-
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
     from js import set_bgm_scene as _set_bgm_scene_js
@@ -19,22 +12,13 @@ except ImportError:
     def set_bgm_scene(scene: int) -> None:
         pass
 
-HAND_W = 2   # 手の画像の幅
-HAND_H = 2   # 手の画像の高さ
-HAND_X = SCREEN_W // 2 - HAND_W // 2  # 横はど真ん中
-HAND_Y = 40   # 今の「選択肢画面」で手が出てる高さに合わせる
 
-HAND_SPR_W = 16      # 手スプライトの元サイズ
-HAND_SPR_H = 16
-HAND_SCALE = 2       # 今2倍で表示してるので 2
+# 画面サイズ
+SCREEN_W = 160
+SCREEN_H = 120
 
-HAND_W = HAND_SPR_W * HAND_SCALE
-HAND_H = HAND_SPR_H * HAND_SCALE
-
-HAND_X = SCREEN_W // 2 - HAND_W // 2   # 横ど真ん中
-HAND_Y = 40                             # 選択肢画面の手の高さに合わせて微調整
-
-
+pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
+pyxel.mouse(False)
 
 # ==== 手アイコン関連 ====
 HAND_ICON_SIZE = 16
@@ -59,34 +43,12 @@ def _load_hand_images():
                 if img.pget(x, y) == bg_col:
                     img.pset(x, y, 0)  # 0 = 透過色にする
 
-# 手スプライトの元画像サイズ（HAND_ICON_SIZE = 16 のはず）
-HAND_SPR_W = HAND_ICON_SIZE
-HAND_SPR_H = HAND_ICON_SIZE
-
-# 表示時の拡大率（今の Kou のゲームは2倍だから 2）
-HAND_SCALE = 2
-
-# 実際に画面に描かれるサイズ
-HAND_W = HAND_SPR_W * HAND_SCALE
-HAND_H = HAND_SPR_H * HAND_SCALE
-
-# プレイヤーの手の表示位置（選択肢画面と揃える）
-HAND_X = SCREEN_W // 2 - HAND_W // 2   # 横ど真ん中
-HAND_Y = 40                            # 上からの高さ（必要に応じて微調整）
 
 def draw_hand_icon(hand: int, x: int, y: int):
     """指定した手アイコンを (x, y) に描画"""
     img_idx = HAND_IMG_INDEX[hand]
+    pyxel.blt(x, y, img_idx, 0, 0, 16, 16, 0, 2, 2)
 
-    # 手画像のサイズを可変化（2でも16でも32でも対応）
-    pyxel.blt(
-        x, y,
-        img_idx,
-        0, 0,
-        HAND_SPR_W, HAND_SPR_H,
-        0,
-        HAND_SCALE, HAND_SCALE
-    )
 
 # 画像を読み込む
 _load_hand_images()
@@ -518,25 +480,12 @@ def draw_game():
         # 数字（1,2,3!）をセンター表示
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # 🔥 3! のときだけ、手を表示
+        # 🔥 3! のときだけ、画面中央に手を2つ表示
         if text == "3!":
-            # プレイヤーの手：選択肢画面と同じ位置
-            draw_hand_icon(player_hand, HAND_X, HAND_Y)
-
-            # CPU の手：画面最上部から 1px 下に、上下逆で表示
-            img_idx = HAND_IMG_INDEX[cpu_hand]
-
-            cpu_x = HAND_X
-            cpu_y = HAND_H + 1     # 上端が 1px 下になるように
-
-            pyxel.blt(
-                cpu_x, cpu_y,
-                img_idx,
-                0, 0,
-                HAND_SPR_W, -HAND_SPR_H,   # ←高さマイナスで上下反転
-                0,
-                HAND_SCALE, HAND_SCALE
-            )
+            # CPU（上）
+            draw_hand_icon(cpu_hand,    center_x, center_y - 10)
+            # プレイヤー（下）
+            draw_hand_icon(player_hand, center_x, center_y + 10)
 
         # 3! が出てから0.7秒後に ▶ 点滅開始（今まで通り）
         if phase_timer >= 63:
