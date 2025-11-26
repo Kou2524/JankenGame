@@ -480,12 +480,18 @@ def draw_game():
         # 数字（1,2,3!）をセンター表示
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # 🔥 3! のときだけ、画面中央に手を2つ表示
+        # 🔥 3! のときだけ、手を表示
         if text == "3!":
-            # CPU（上）
-            draw_hand_icon(cpu_hand,    center_x, center_y - 10)
-            # プレイヤー（下）
-            draw_hand_icon(player_hand, center_x, center_y + 10)
+            # ▼ プレイヤーの手：選択フェーズと同じ位置
+            draw_hand_icon(player_hand, player_icon_x, player_icon_y)
+
+            # ▼ CPU の手：画面最上部から 1px 下に、上下逆で表示
+            img_idx = HAND_IMG_INDEX[cpu_hand]
+            cpu_x = player_icon_x
+            cpu_y = 1  # 画面最上部から 1px 下
+
+            # h を -16 にすると上下反転（16 は HAND_ICON_SIZE と同じ）
+            pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
 
         # 3! が出てから0.7秒後に ▶ 点滅開始（今まで通り）
         if phase_timer >= 63:
