@@ -166,21 +166,6 @@ def reset_game() -> None:
 
 
 def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
-    
-def draw_battle_hands(player_icon_x: int, player_icon_y: int) -> None:
-    """
-    勝負が決まった後に表示しておくプレイヤー＆CPUの手
-    """
-    # プレイヤー（下）
-    draw_hand_icon(player_hand, player_icon_x, player_icon_y)
-
-    # CPU（上・上下反転）
-    img_idx = HAND_IMG_INDEX[cpu_hand]
-    cpu_x = player_icon_x
-    cpu_y = 9  # 画面上から少し下
-
-    pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
-    
     """
     枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
@@ -197,6 +182,19 @@ def draw_battle_hands(player_icon_x: int, player_icon_y: int) -> None:
             7
         )
 
+def draw_battle_hands(player_icon_x: int, player_icon_y: int) -> None:
+    """
+    勝負が決まった後に表示しておくプレイヤー＆CPUの手
+    """
+    # プレイヤー（下）
+    draw_hand_icon(player_hand, player_icon_x, player_icon_y)
+
+    # CPU（上・上下反転）
+    img_idx = HAND_IMG_INDEX[cpu_hand]
+    cpu_x = player_icon_x
+    cpu_y = 9  # 画面上から少し下
+
+    pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
 
 # ------------------------------
 # UPDATE
