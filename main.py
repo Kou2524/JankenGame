@@ -409,7 +409,7 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
-    # 右上 WIN / SCORE 表示
+        # 右上 WIN / SCORE 表示
     # - score_unlocked が True になったら、負けてフェードが終わるまでずっと表示
     # - 負けたあとは score_fade_timer でゆっくり消える
     show_score = score_unlocked or (score_fade_timer > 0)
@@ -418,17 +418,7 @@ def draw_game():
         col_main = 10   # WIN
         col_score = 7   # SCORE
 
-    # === 3! で勝敗が決まった後の手の表示 ===
-    if result_decided:
-        # 勝ち系・継続系の画面では表示しっぱなし
-        if game_phase in (6, 8, 9, 10):
-            draw_battle_hands(player_icon_x, player_icon_y)
-
-        # 負け画面だけはフェード中だけ表示
-        elif game_phase == 7 and score_fade_timer > 0:
-            draw_battle_hands(player_icon_x, player_icon_y)
-
-        # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
+        # フェード中はだんだん暗くする
         if score_fade_timer > 0:
             if score_fade_timer > 10:      # 明るい（最初の1/3）
                 col_main = 10
