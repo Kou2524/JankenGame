@@ -409,7 +409,7 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
-        # 右上 WIN / SCORE 表示
+    # 右上 WIN / SCORE 表示
     # - score_unlocked が True になったら、負けてフェードが終わるまでずっと表示
     # - 負けたあとは score_fade_timer でゆっくり消える
     show_score = score_unlocked or (score_fade_timer > 0)
