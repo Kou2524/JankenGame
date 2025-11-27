@@ -395,7 +395,7 @@ def draw_game():
     pyxel.rect(panel_x, panel_y, panel_w, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, panel_w, panel_h, 7)   # 枠
     
-    # 画面中央（手を真ん中に置く用）
+    # 画面中央（手を真ん中に置く用）※今は未使用でもOK
     center_x = SCREEN_W // 2 - 16  # 32pxの半分
     center_y = SCREEN_H // 2 - 16
 
@@ -405,7 +405,7 @@ def draw_game():
     # 手アイコンの位置（プレイヤー）
     player_icon_x = panel_x + panel_w // 2 - HAND_ICON_SIZE // 2
     player_icon_y = panel_y - HAND_ICON_SIZE - 9
-    # CPUアイコン（プレイヤーの上側）
+    # CPUアイコン（プレイヤーの上側）※今は使わないけど残しとく
     cpu_icon_x = player_icon_x
     cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
 
@@ -418,7 +418,7 @@ def draw_game():
         col_main = 10   # WIN
         col_score = 7   # SCORE
 
-        # フェード中はだんだん暗くする
+        # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
         if score_fade_timer > 0:
             if score_fade_timer > 10:      # 明るい（最初の1/3）
                 col_main = 10
@@ -437,6 +437,11 @@ def draw_game():
         score_txt = f"SCORE {score}"
         score_x = SCREEN_W - len(score_txt) * 4 - 4
         pyxel.text(score_x, 12, score_txt, col_score)
+
+    # === 3! で勝敗が決まった後の手の表示 ===
+    # 3! 以降、勝ち系の画面では手を出しっぱなし
+    if result_decided and game_phase in (6, 8, 9, 10):
+        draw_battle_hands(player_icon_x, player_icon_y)
 
     # ===== 各フェーズ =====
     if game_phase == 0:
@@ -475,9 +480,9 @@ def draw_game():
         draw_centered_text_panel(
             panel_x,
             panel_w,
-            msg_center_y,       # ← ここ追加（真ん中のY座標）
-            "Are you ready?",   # ← テキスト
-            7                   # ← 色（白っぽい色、他のフェーズと合わせてOK）
+            msg_center_y,
+            "Are you ready?",
+            7
         )
         draw_next_indicator(panel_x, panel_y, panel_w)
     
@@ -539,7 +544,6 @@ def draw_game():
     elif game_phase == 10:
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, "One more time!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
-
 
 # ------------------------------
 # DRAW (ALL)
