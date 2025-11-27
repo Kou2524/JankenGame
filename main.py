@@ -166,6 +166,19 @@ def reset_game() -> None:
 
 
 def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
+    
+    """
+    勝負が決まった後に表示しておくプレイヤー＆CPUの手
+    """
+    # プレイヤー（下）
+    draw_hand_icon(player_hand, player_icon_x, player_icon_y)
+
+    # CPU（上・上下反転）
+    img_idx = HAND_IMG_INDEX[cpu_hand]
+    cpu_x = player_icon_x
+    cpu_y = 9  # 画面上から少し下
+    pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
+    
     """
     枠の右下に小さな下向き三角を点滅表示（ミニバージョン）
     """
@@ -405,6 +418,16 @@ def draw_game():
         col_main = 10   # WIN
         col_score = 7   # SCORE
 
+    # === 3! で勝敗が決まった後の手の表示 ===
+    if result_decided:
+        # 勝ち系・継続系の画面では表示しっぱなし
+        if game_phase in (6, 8, 9, 10):
+            draw_battle_hands(player_icon_x, player_icon_y)
+
+        # 負け画面だけはフェード中だけ表示
+        elif game_phase == 7 and score_fade_timer > 0:
+            draw_battle_hands(player_icon_x, player_icon_y)
+
         # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
         if score_fade_timer > 0:
             if score_fade_timer > 10:      # 明るい（最初の1/3）
@@ -482,16 +505,7 @@ def draw_game():
 
         # 🔥 3! のときだけ、手を表示
         if text == "3!":
-            # ▼ プレイヤーの手：選択フェーズと同じ位置
-            draw_hand_icon(player_hand, player_icon_x, player_icon_y)
-
-            # ▼ CPU の手：画面最上部から 1px 下に、上下逆で表示
-            img_idx = HAND_IMG_INDEX[cpu_hand]
-            cpu_x = player_icon_x
-            cpu_y = 9  # 画面最上部から 9px 下
-
-            # h を -16 にすると上下反転（16 は HAND_ICON_SIZE と同じ）
-            pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
+            draw_battle_hands(player_icon_x, player_icon_y)
 
         # 3! が出てから0.7秒後に ▶ 点滅開始（今まで通り）
         if phase_timer >= 63:
