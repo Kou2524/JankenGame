@@ -365,7 +365,7 @@ def update():
     elif scene == 2:
         if is_ok_pressed():
             scene = 0
-            menu_idx = 0
+            #menu_idx = 0 ←これあると強制的にSTART選んじゃう！
 
 
 # ------------------------------
@@ -488,7 +488,7 @@ def draw_game():
             # ▼ CPU の手：画面最上部から 1px 下に、上下逆で表示
             img_idx = HAND_IMG_INDEX[cpu_hand]
             cpu_x = player_icon_x
-            cpu_y = 10  # 画面最上部から 10px 下
+            cpu_y = 9  # 画面最上部から 9px 下
 
             # h を -16 にすると上下反転（16 は HAND_ICON_SIZE と同じ）
             pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
