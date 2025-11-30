@@ -293,14 +293,14 @@ def update():
 
                 result_decided = True
 
-            # 3! が出てから 0.7秒後に OK 受付
+            # ★ ここ！「3! が出てから 0.7秒後に OK 受付」は消してない
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
                     # あいこ：スコアも連勝もそのまま
                     game_phase = 10  # One more time!
 
                 elif result == 1:
-                    # ★ここで初めてスコア＆連勝を更新
+                    # 勝ち：ここでスコア＆連勝を更新
                     win_streak += 1
                     if win_streak == 1:
                         score = 2000
@@ -312,13 +312,16 @@ def update():
                     game_phase = 6          # You win!
 
                 else:
-                    # 負け：スコアはいじらず、game_phase==7 でフェード処理
+                    # 負け：この時点のスコアを HIGH SCORE に反映
+                    if score > high_score:
+                        high_score = score
+
                     game_phase = 7          # You lose...
 
                 phase_timer = 0
 
         elif game_phase == 6:
-            # 「You win!」 → Continue? へ
+            # 「You win!」 → Next game! へ
             if is_ok_pressed():
                 game_phase = 8
                 phase_timer = 0
@@ -326,7 +329,7 @@ def update():
         elif game_phase == 7:
             # 「You lose...」
 
-            # ★負けた瞬間にフェード開始（1回だけ）
+            # 負けた瞬間にフェード開始（1回だけ）
             if win_streak > 0 and score_fade_timer == 0:
                 score_fade_timer = 15  # 30フレーム＝約0.5秒くらい
 
@@ -344,31 +347,16 @@ def update():
                 menu_idx = 0
 
         elif game_phase == 8:
-            # 「Continue?」→ ボタンで YES/NO 選択へ
+            # 勝利後の「Next game!」 → 次ラウンドへ
             if is_ok_pressed():
-                game_phase = 9
+                game_phase = 1          # Which hand should I play? へ戻る
                 phase_timer = 0
+                result_decided = False  # 次の勝負用にリセット
 
-        elif game_phase == 9:
-            # YES / NO 選択
-            if is_left_pressed():
-                continue_cursor = 0
-            if is_right_pressed():
-                continue_cursor = 1
-
-            if is_ok_pressed():
-                if continue_cursor == 0:  # YES
-                    game_phase = 1
-                    phase_timer = 0
-                    result_decided = False
-                else:  # NO → ここでハイスコア更新
-                    if score > high_score:
-                        high_score = score
-                    scene = 0
-                    menu_idx = 0
+        # ★ game_phase == 9 はもう使わないので削除でOK
 
         elif game_phase == 10:
-            # 「One more time!」→ もう一度手選びへ
+            # 「One more time!」(あいこ) → もう一度手選びへ
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
@@ -440,7 +428,7 @@ def draw_game():
 
     # === 3! で勝敗が決まった後の手の表示 ===
     # 3! 以降、勝ち系の画面では手を出しっぱなし
-    if result_decided and game_phase in (6, 8, 9, 10):
+    if result_decided and game_phase in (6, 8, 10):
         draw_battle_hands(player_icon_x, player_icon_y)
 
     # ===== 各フェーズ =====
