@@ -458,9 +458,9 @@ def draw_game():
     player_icon_x = panel_x + panel_w // 2 - HAND_ICON_SIZE // 2
     player_icon_y = panel_y - HAND_ICON_SIZE - 9
 
-    # CPUアイコン（プレイヤーの上側・少し近め）
+    # CPUアイコンを「画面一番上から1px下」に固定表示
     cpu_icon_x = player_icon_x
-    cpu_icon_y = player_icon_y - HAND_ICON_SIZE -4
+    cpu_icon_y = 1  # ★ここを固定値にする
 
     # 右上 WIN / SCORE 表示
     show_score = score_unlocked or (score_fade_timer > 0)
