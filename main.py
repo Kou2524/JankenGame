@@ -105,7 +105,7 @@ secret_index = 0            # 入力進捗
 cheat_pending = False       # 次にHOW TOに入るときにトグルするフラグ
 
 # 「上下上下左右左右ボタン」までをコマンドにする
-SECRET_SEQUENCE = ["U", "D", "U", "D", "L", "R", "L", "R", "OK"]
+SECRET_SEQUENCE = ["U", "D", "U", "D", "L", "R", "L", "R", "OK", "OK"]
 
 
 # ------------------------------
