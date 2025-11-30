@@ -100,9 +100,12 @@ score_unlocked = False      # 一度でも「You win!」を出したら True
 score_fade_timer = 0        # 負けたときのフェード用タイマー
 
 # ==== シークレットモード（絶対勝てるモード） ====
-cheat_mode = False
-secret_index = 0
-SECRET_SEQUENCE = ["U", "D", "U", "D", "L", "R", "L", "R", "OK", "OK"]
+cheat_mode = False          # 実際のON/OFF
+secret_index = 0            # 入力進捗
+cheat_pending = False       # 次にHOW TOに入るときにトグルするフラグ
+
+# 「上下上下左右左右ボタン」までをコマンドにする
+SECRET_SEQUENCE = ["U", "D", "U", "D", "L", "R", "L", "R", "OK"]
 
 
 # ------------------------------
@@ -211,7 +214,7 @@ def update():
     global hand_cursor, continue_cursor, result_decided
     global win_streak, score, high_score
     global score_unlocked, score_fade_timer
-    global cheat_mode, secret_index
+    global cheat_mode, secret_index, cheat_pending
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -223,7 +226,7 @@ def update():
             set_bgm_scene(2)  # HOW TO用BGM
         last_scene = scene
 
-    # ==== HOW TO 画面でのシークレットコマンド入力 ====
+        # ==== HOW TO 画面でのシークレットコマンド入力 ====
     if scene == 2:
         key = None
         if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
@@ -242,15 +245,17 @@ def update():
 
             if key == expected:
                 secret_index += 1
-                # 全部正しく入力できたらトグル
+
+                # ★ コマンド全部成功したタイミング
                 if secret_index >= len(SECRET_SEQUENCE):
-                    cheat_mode = not cheat_mode
                     secret_index = 0
-                    # 成功したらタイトルへ戻す（HOW TO を選んだ状態）
+                    cheat_pending = True   # 次の HOW TO 入場でON/OFFする
+
+                    # タイトルに戻して HOW TO を選んだ状態に
                     scene = 0
                     menu_idx = 1
             else:
-                # 失敗：ただし今回押したキーが先頭の "U" なら 1 から再スタート
+                # 失敗時。最初の「U」からやり直せるようにする
                 if key == SECRET_SEQUENCE[0]:
                     secret_index = 1
                 else:
@@ -273,6 +278,10 @@ def update():
                 scene = 1
                 reset_game()
             elif menu_idx == 1:  # HOW TO
+                # ★ コマンド成功済みなら、この瞬間にON/OFFトグル
+                if cheat_pending:
+                    cheat_pending = False
+                    cheat_mode = not cheat_mode
                 scene = 2
 
     # 1: GAME
