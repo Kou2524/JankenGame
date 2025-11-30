@@ -460,7 +460,7 @@ def draw_game():
 
     # CPUアイコンを「画面一番上から1px下」に固定表示
     cpu_icon_x = player_icon_x
-    cpu_icon_y = 1  # ★ここを固定値にする
+    cpu_icon_y = 17  # ★ここを固定値にする
 
     # 右上 WIN / SCORE 表示
     show_score = score_unlocked or (score_fade_timer > 0)
