@@ -503,7 +503,7 @@ def draw_game():
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 8:
-        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Continue?", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Next game!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 9:
