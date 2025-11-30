@@ -72,9 +72,9 @@ MENU = [
 # 4: 1,2,3!
 # 6: You win!
 # 7: You lose...
-# 8: Continue?
-# 9: Yes / No 選択
+# 8: Next game!
 # 10: One more time!
+# 11: 10 wins Congratulations!
 game_phase = 0
 phase_timer = 0  # そのフェーズに入ってからの経過フレーム
 
@@ -86,7 +86,7 @@ result_decided = False  # 3! のタイミングで勝敗を決めたかどうか
 
 # 選択カーソル
 hand_cursor = 0        # 0〜2
-continue_cursor = 0    # 0: YES, 1: NO
+continue_cursor = 0    # 今は未使用
 
 HAND_LABELS = ["ROCK", "SCISSORS", "PAPER"]
 
@@ -98,6 +98,12 @@ high_score = 0  # タイトル画面で表示するハイスコア
 # スコア表示の状態
 score_unlocked = False      # 一度でも「You win!」を出したら True
 score_fade_timer = 0        # 負けたときのフェード用タイマー
+
+# ==== シークレットモード（絶対勝てるモード） ====
+cheat_mode = False
+secret_index = 0
+SECRET_SEQUENCE = ["U", "D", "U", "D", "L", "R", "L", "R", "OK", "OK"]
+
 
 # ------------------------------
 # ヘルパー
@@ -147,7 +153,7 @@ def reset_game() -> None:
     global game_phase, phase_timer, player_hand, cpu_hand, result
     global hand_cursor, continue_cursor, result_decided
     global win_streak, score
-    global score_unlocked, score_fade_timer  # ★ここ追加
+    global score_unlocked, score_fade_timer
 
     game_phase = 0
     phase_timer = 0
@@ -161,8 +167,8 @@ def reset_game() -> None:
     # 連勝・スコアもリセット
     win_streak = 0
     score = 0
-    score_unlocked = False      # ★追加
-    score_fade_timer = 0        # ★追加
+    score_unlocked = False
+    score_fade_timer = 0
 
 
 def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
@@ -182,7 +188,8 @@ def draw_next_indicator(panel_x: int, panel_y: int, panel_w: int) -> None:
             7
         )
 
-def draw_battle_hands(player_icon_x: int, player_icon_y: int) -> None:
+
+def draw_battle_hands(player_icon_x: int, player_icon_y: int, cpu_icon_y: int) -> None:
     """
     勝負が決まった後に表示しておくプレイヤー＆CPUの手
     """
@@ -192,9 +199,8 @@ def draw_battle_hands(player_icon_x: int, player_icon_y: int) -> None:
     # CPU（上・上下反転）
     img_idx = HAND_IMG_INDEX[cpu_hand]
     cpu_x = player_icon_x
-    cpu_y = 9  # 画面上から少し下
+    pyxel.blt(cpu_x, cpu_icon_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
 
-    pyxel.blt(cpu_x, cpu_y, img_idx, 0, 0, 16, -16, 0, 2, 2)
 
 # ------------------------------
 # UPDATE
@@ -205,6 +211,7 @@ def update():
     global hand_cursor, continue_cursor, result_decided
     global win_streak, score, high_score
     global score_unlocked, score_fade_timer
+    global cheat_mode, secret_index
 
     # === シーンが変わった瞬間だけ BGM を切り替える ===
     if scene != last_scene:
@@ -213,8 +220,41 @@ def update():
         elif scene == 1:
             set_bgm_scene(1)  # ゲーム用BGM
         elif scene == 2:
-            set_bgm_scene(2)  # HOW TO用BGM（bgm1 を使うなら JS 側で同じにしてOK）
+            set_bgm_scene(2)  # HOW TO用BGM
         last_scene = scene
+
+    # ==== HOW TO 画面でのシークレットコマンド入力 ====
+    if scene == 2:
+        key = None
+        if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_UP):
+            key = "U"
+        elif pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_DOWN):
+            key = "D"
+        elif pyxel.btnp(pyxel.KEY_LEFT) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_LEFT):
+            key = "L"
+        elif pyxel.btnp(pyxel.KEY_RIGHT) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT):
+            key = "R"
+        elif is_ok_pressed():
+            key = "OK"
+
+        if key is not None:
+            expected = SECRET_SEQUENCE[secret_index]
+
+            if key == expected:
+                secret_index += 1
+                # 全部正しく入力できたらトグル
+                if secret_index >= len(SECRET_SEQUENCE):
+                    cheat_mode = not cheat_mode
+                    secret_index = 0
+                    # 成功したらタイトルへ戻す（HOW TO を選んだ状態）
+                    scene = 0
+                    menu_idx = 1
+            else:
+                # 失敗：ただし今回押したキーが先頭の "U" なら 1 から再スタート
+                if key == SECRET_SEQUENCE[0]:
+                    secret_index = 1
+                else:
+                    secret_index = 0
 
     # 0: TITLE
     if scene == 0:
@@ -275,32 +315,42 @@ def update():
 
             # 3! が出たタイミングで一度だけ CPU 手＆勝敗を決める
             if phase_timer >= 42 and not result_decided:
-                cpu_hand = pyxel.rndi(0, 2)
 
-                # 手の意味
-                # 0: ROCK, 1: SCISSORS, 2: PAPER
+                if cheat_mode:
+                    # 絶対WINモード：プレイヤーが必ず勝つ手になるよう CPU の手を決定
+                    if player_hand == 0:       # ROCK → CPU は SCISSORS
+                        cpu_hand = 1
+                    elif player_hand == 1:     # SCISSORS → CPU は PAPER
+                        cpu_hand = 2
+                    else:                      # PAPER → CPU は ROCK
+                        cpu_hand = 0
 
-                if player_hand == cpu_hand:
-                    result = 0  # draw
-                elif (
-                    (player_hand == 0 and cpu_hand == 1)  # ROCK beats SCISSORS
-                    or (player_hand == 1 and cpu_hand == 2)  # SCISSORS beats PAPER
-                    or (player_hand == 2 and cpu_hand == 0)  # PAPER beats ROCK
-                ):
-                    result = 1  # win
+                    result = 1  # 必ず WIN
                 else:
-                    result = -1  # lose
+                    # 通常ランダムじゃんけん
+                    cpu_hand = pyxel.rndi(0, 2)
+
+                    if player_hand == cpu_hand:
+                        result = 0  # draw
+                    elif (
+                        (player_hand == 0 and cpu_hand == 1)  # ROCK beats SCISSORS
+                        or (player_hand == 1 and cpu_hand == 2)  # SCISSORS beats PAPER
+                        or (player_hand == 2 and cpu_hand == 0)  # PAPER beats ROCK
+                    ):
+                        result = 1  # win
+                    else:
+                        result = -1  # lose
 
                 result_decided = True
 
-            # ★ ここ！「3! が出てから 0.7秒後に OK 受付」は消してない
+            # 3! が出てから 0.7秒後に OK 受付
             if phase_timer >= 63 and is_ok_pressed():
                 if result == 0:
                     # あいこ：スコアも連勝もそのまま
                     game_phase = 10  # One more time!
 
                 elif result == 1:
-                    # 勝ち：ここでスコア＆連勝を更新
+                    # 勝ち：連勝＆スコア更新
                     win_streak += 1
                     if win_streak == 1:
                         score = 2000
@@ -321,9 +371,12 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 6:
-            # 「You win!」 → Next game! へ
+            # 「You win!」 → Next game! もしくは 10連勝演出へ
             if is_ok_pressed():
-                game_phase = 8
+                if win_streak >= 10:
+                    game_phase = 11  # 10 wins Congratulations!
+                else:
+                    game_phase = 8   # Next game!
                 phase_timer = 0
 
         elif game_phase == 7:
@@ -331,7 +384,7 @@ def update():
 
             # 負けた瞬間にフェード開始（1回だけ）
             if win_streak > 0 and score_fade_timer == 0:
-                score_fade_timer = 15  # 30フレーム＝約0.5秒くらい
+                score_fade_timer = 15  # だいたい 0.5秒くらい
 
             # フェードタイマー進行
             if score_fade_timer > 0:
@@ -347,13 +400,11 @@ def update():
                 menu_idx = 0
 
         elif game_phase == 8:
-            # 勝利後の「Next game!」 → 次ラウンドへ
+            # 「Next game!」→ そのまま次ラウンドへ
             if is_ok_pressed():
                 game_phase = 1          # Which hand should I play? へ戻る
                 phase_timer = 0
                 result_decided = False  # 次の勝負用にリセット
-
-        # ★ game_phase == 9 はもう使わないので削除でOK
 
         elif game_phase == 10:
             # 「One more time!」(あいこ) → もう一度手選びへ
@@ -362,11 +413,28 @@ def update():
                 phase_timer = 0
                 result_decided = False
 
+        elif game_phase == 11:
+            # 「10 wins Congratulations!」画面
+            if is_ok_pressed():
+                # この時点のスコアを HIGH SCORE に反映
+                if score > high_score:
+                    high_score = score
+
+                # スコアまわりリセット
+                win_streak = 0
+                score = 0
+                score_unlocked = False
+                score_fade_timer = 0
+
+                # タイトルへ戻る
+                scene = 0
+                menu_idx = 0
+
     # 2: HOW TO
     elif scene == 2:
         if is_ok_pressed():
             scene = 0
-            #menu_idx = 0 ←これあると強制的にSTART選んじゃう！
+            # menu_idx はいじらない → 最後に選んでた方をキープ
 
 
 # ------------------------------
@@ -382,10 +450,6 @@ def draw_game():
     # 下パネル
     pyxel.rect(panel_x, panel_y, panel_w, panel_h, 1)    # 中
     pyxel.rectb(panel_x, panel_y, panel_w, panel_h, 7)   # 枠
-    
-    # 画面中央（手を真ん中に置く用）※今は未使用でもOK
-    center_x = SCREEN_W // 2 - 16  # 32pxの半分
-    center_y = SCREEN_H // 2 - 16
 
     # 枠のちょうど中央に来るY（文字高さ6px前提）
     msg_center_y = panel_y + panel_h // 2 - 3
@@ -393,28 +457,27 @@ def draw_game():
     # 手アイコンの位置（プレイヤー）
     player_icon_x = panel_x + panel_w // 2 - HAND_ICON_SIZE // 2
     player_icon_y = panel_y - HAND_ICON_SIZE - 9
-    # CPUアイコン（プレイヤーの上側）※今は使わないけど残しとく
+
+    # CPUアイコン（プレイヤーの上側・少し近め）
     cpu_icon_x = player_icon_x
-    cpu_icon_y = player_icon_y - HAND_ICON_SIZE - 4
+    cpu_icon_y = player_icon_y - HAND_ICON_SIZE + 2
 
     # 右上 WIN / SCORE 表示
-    # - score_unlocked が True になったら、負けてフェードが終わるまでずっと表示
-    # - 負けたあとは score_fade_timer でゆっくり消える
     show_score = score_unlocked or (score_fade_timer > 0)
 
     if show_score:
         col_main = 10   # WIN
         col_score = 7   # SCORE
 
-        # フェード中はだんだん暗くする（既に入れてるならそれ流用でOK）
+        # フェード中はだんだん暗くする
         if score_fade_timer > 0:
-            if score_fade_timer > 10:      # 明るい（最初の1/3）
+            if score_fade_timer > 10:
                 col_main = 10
                 col_score = 7
-            elif score_fade_timer > 5:     # 中くらい（中盤1/3）
+            elif score_fade_timer > 5:
                 col_main = 5
                 col_score = 6
-            else:                          # 暗い（ラスト1/3）
+            else:
                 col_main = 1
                 col_score = 5
 
@@ -427,9 +490,9 @@ def draw_game():
         pyxel.text(score_x, 12, score_txt, col_score)
 
     # === 3! で勝敗が決まった後の手の表示 ===
-    # 3! 以降、勝ち系の画面では手を出しっぱなし
-    if result_decided and game_phase in (6, 8, 10):
-        draw_battle_hands(player_icon_x, player_icon_y)
+    # 勝ち系の画面では手を出しっぱなし
+    if result_decided and game_phase in (6, 8, 10, 11):
+        draw_battle_hands(player_icon_x, player_icon_y, cpu_icon_y)
 
     # ===== 各フェーズ =====
     if game_phase == 0:
@@ -470,10 +533,10 @@ def draw_game():
             panel_w,
             msg_center_y,
             "Are you ready?",
-            7
+            7,
         )
         draw_next_indicator(panel_x, panel_y, panel_w)
-    
+
     elif game_phase == 4:
         # 1,2,3! の表示 (0.7秒 = 21フレーム間隔)
         if phase_timer < 21:
@@ -482,15 +545,15 @@ def draw_game():
             text = "2"
         else:
             text = "3!"
-        
+
         # 数字（1,2,3!）をセンター表示
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, text, 7)
 
-        # 🔥 3! のときだけ、手を表示
+        # 3! のときだけ、手を表示
         if text == "3!":
-            draw_battle_hands(player_icon_x, player_icon_y)
+            draw_battle_hands(player_icon_x, player_icon_y, cpu_icon_y)
 
-        # 3! が出てから0.7秒後に ▶ 点滅開始（今まで通り）
+        # 3! が出てから0.7秒後に ▶ 点滅開始
         if phase_timer >= 63:
             draw_next_indicator(panel_x, panel_y, panel_w)
 
@@ -506,32 +569,14 @@ def draw_game():
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Next game!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
-    elif game_phase == 9:
-        # Continue? を少し上、その下に YES / NO
-        cont_y = msg_center_y - 6
-        draw_centered_text_panel(panel_x, panel_w, cont_y, "Continue?", 7)
-
-        labels = ["YES", "NO"]
-        slot_w = 45
-        start_x = (SCREEN_W - slot_w * 2) // 2
-        yesno_y = msg_center_y + 4
-
-        for i, label in enumerate(labels):
-            x = start_x + i * slot_w
-            text_x = x + (slot_w - len(label) * 4) // 2
-            pyxel.text(text_x, yesno_y, label, 7)
-
-            # 点滅カーソル（3px三角＋1文字分スペース）
-            if i == continue_cursor and pyxel.frame_count % 20 < 10:
-                tip_x = text_x - 4      # テキスト左に4pxあける
-                base_x = tip_x - 3      # 横幅3px
-                cy = yesno_y + 2        # 文字と揃うように微調整
-
-                pyxel.tri(base_x, cy - 2, base_x, cy + 2, tip_x, cy, 7)
-
     elif game_phase == 10:
         draw_centered_text_panel(panel_x, panel_w, msg_center_y, "One more time!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
+
+    elif game_phase == 11:
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "10 wins Congratulations!", 10)
+        draw_next_indicator(panel_x, panel_y, panel_w)
+
 
 # ------------------------------
 # DRAW (ALL)
@@ -576,7 +621,8 @@ def draw():
 
     elif scene == 2:
         # ===== HOW TO =====
-        draw_centered_text_screen(20, "HOW TO PLAY", 10)
+        title_col = 8 if cheat_mode else 10  # 赤: チートON, 黄: 通常
+        draw_centered_text_screen(20, "HOW TO PLAY", title_col)
         pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
         pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
         pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
