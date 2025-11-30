@@ -460,7 +460,7 @@ def draw_game():
 
     # CPUアイコン（プレイヤーの上側・少し近め）
     cpu_icon_x = player_icon_x
-    cpu_icon_y = player_icon_y - HAND_ICON_SIZE + 2
+    cpu_icon_y = player_icon_y - HAND_ICON_SIZE -4
 
     # 右上 WIN / SCORE 表示
     show_score = score_unlocked or (score_fade_timer > 0)
