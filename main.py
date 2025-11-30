@@ -551,7 +551,7 @@ def draw_game():
 
         # 3! のときだけ、手を表示
         if text == "3!":
-            draw_battle_hands(player_icon_x, player_icon_y, cpu_icon_y)
+            draw_battle_hands(player_icon_x, player_icon_y)
 
         # 3! が出てから0.7秒後に ▶ 点滅開始
         if phase_timer >= 63:
