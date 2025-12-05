@@ -2,7 +2,7 @@ import pyxel
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
-    from js import set_bgm_scene as _set_bgm_scene_js
+    from js import set_bgm_scene as _set_bgm_scene_js # type: ignore[import]
 
     def set_bgm_scene(scene: int) -> None:
         _set_bgm_scene_js(scene)
