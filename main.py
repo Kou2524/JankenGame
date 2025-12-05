@@ -28,7 +28,7 @@ HAND_IMG_INDEX = [0, 1, 2]  # ROCK, SCISSORS, PAPER
 def _load_hand_images():
     """
     rock.png / scissors.png / paper.png を読み込みつつ、
-    左上(0,0)の色を背景色とみなして 0 番色に差し替えて透過させる
+    左上(0,0)の色を背景色とみなして 0 番色に差し替えて透過させる！
     """
     files = ["rock.png", "scissors.png", "paper.png"]
 
