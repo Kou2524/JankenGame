@@ -1,9 +1,8 @@
 import pyxel
-import PyxelUniversalFont as puf
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
-    from js import set_bgm_scene as _set_bgm_scene_js # type: ignore[import]
+    from js import set_bgm_scene as _set_bgm_scene_js
 
     def set_bgm_scene(scene: int) -> None:
         _set_bgm_scene_js(scene)
@@ -21,28 +20,6 @@ SCREEN_H = 120
 pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
 pyxel.mouse(False)
 
-writer = puf.Writer("misaki_gothic.ttf")
-
-def jp_text(x: int, y: int, text: str, color: int = 7, size: int = 8) -> None:
-    """
-    日本語テキスト描画用のヘルパー
-    size: フォントサイズ（8 or 16 くらいが使いやすい）
-    color: Pyxel のカラー番号
-    """
-    writer.draw(x, y, text, size, color, -1)  # 背景色 -1 は透明
-
-    # 日本語テキストをパネルの中央に出す用
-def draw_centered_jp_panel(panel_x: int, panel_w: int, y: int,
-                           text: str, color: int = 7, size: int = 8) -> None:
-    # ざっくり「文字数 × フォントサイズ」で幅を計算
-    text_w = len(text) * size
-    text_x = panel_x + (panel_w - text_w) // 2
-
-    # 背景色 -1 = 透明
-    writer.draw(text_x, y, text, size, color, -1)
-
-
-
 # ==== 手アイコン関連 ====
 HAND_ICON_SIZE = 16
 HAND_IMG_INDEX = [0, 1, 2]  # ROCK, SCISSORS, PAPER
@@ -51,7 +28,7 @@ HAND_IMG_INDEX = [0, 1, 2]  # ROCK, SCISSORS, PAPER
 def _load_hand_images():
     """
     rock.png / scissors.png / paper.png を読み込みつつ、
-    左上(0,0)の色を背景色とみなして 0 番色に差し替えて透過させる！
+    左上(0,0)の色を背景色とみなして 0 番色に差し替えて透過させる
     """
     files = ["rock.png", "scissors.png", "paper.png"]
 
@@ -519,11 +496,11 @@ def draw_game():
 
     # ===== 各フェーズ =====
     if game_phase == 0:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "じゃんけんゲーム　の　はじまりだ！", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "JANKEN GAME begins!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 1:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "どの手をだす?", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Which hand should I play?", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 2:
@@ -551,11 +528,11 @@ def draw_game():
 
     elif game_phase == 3:
         # 「Are you ready?」画面
-        draw_centered_jp_panel(
+        draw_centered_text_panel(
             panel_x,
             panel_w,
             msg_center_y,
-            "準備はいい?",
+            "Are you ready?",
             7,
         )
         draw_next_indicator(panel_x, panel_y, panel_w)
@@ -581,23 +558,23 @@ def draw_game():
             draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 6:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "君の勝ち！", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "You win!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 7:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "君の負け...", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "You lose...", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 8:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "次の勝負！", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "Next game!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 10:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "もう一回！", 7)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "One more time!", 7)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
     elif game_phase == 11:
-        draw_centered_jp_panel(panel_x, panel_w, msg_center_y, "10連勝　おめでとう！", 10)
+        draw_centered_text_panel(panel_x, panel_w, msg_center_y, "10 wins Congratulations!", 10)
         draw_next_indicator(panel_x, panel_y, panel_w)
 
 
