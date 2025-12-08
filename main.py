@@ -1,5 +1,4 @@
 import pyxel
-from PyxelUniversalFont import PyxelUniversalFont  # ★ 日本語フォント
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
@@ -20,9 +19,6 @@ SCREEN_H = 120
 
 pyxel.init(SCREEN_W, SCREEN_H, title="Janken Game", fps=30)
 pyxel.mouse(False)
-
-# ★ 日本語フォント（サイズはお好みで調整OK）
-font_ja = PyxelUniversalFont(size=8)
 
 # ==== 手アイコン関連 ====
 HAND_ICON_SIZE = 16
@@ -61,11 +57,11 @@ _load_hand_images()
 scene = 0
 last_scene = -1  # 直前のシーン（BGM切り替え用）
 
-# タイトルメニュー（★日本語に変更）
-menu_idx = 0  # 0: スタート, 1: 遊び方
+# タイトルメニュー
+menu_idx = 0  # 0: START, 1: HOW TO
 MENU = [
-    ("スタート", 52, 70, 56, 12),
-    ("遊び方", 52, 86, 56, 12),
+    ("START", 52, 70, 56, 12),
+    ("HOW TO", 52, 86, 56, 12),
 ]
 
 # ===== GAME 用の状態管理 =====
@@ -113,21 +109,15 @@ SECRET_SEQUENCE = ["U", "U", "D", "D", "L", "R", "L", "R", "OK", "OK"]
 # ヘルパー
 # ------------------------------
 def draw_centered_text_screen(y: int, text: str, col: int) -> None:
-    """
-    ★ 日本語対応：font_ja で幅を計算して画面中央に描画
-    """
-    text_w = font_ja.text_width(text)
+    text_w = len(text) * 4
     x = (SCREEN_W - text_w) // 2
-    pyxel.text(x, y, text, col, font_ja)
+    pyxel.text(x, y, text, col)
 
 
 def draw_centered_text_panel(panel_x: int, panel_w: int, y: int, text: str, col: int) -> None:
-    """
-    ★ 日本語対応：指定パネル内で中央寄せ
-    """
-    text_w = font_ja.text_width(text)
+    text_w = len(text) * 4
     x = panel_x + (panel_w - text_w) // 2
-    pyxel.text(x, y, text, col, font_ja)
+    pyxel.text(x, y, text, col)
 
 
 def is_ok_pressed() -> bool:
@@ -279,10 +269,10 @@ def update():
 
         # 決定
         if is_ok_pressed():
-            if menu_idx == 0:  # スタート
+            if menu_idx == 0:  # START
                 scene = 1
                 reset_game()
-            elif menu_idx == 1:  # 遊び方
+            elif menu_idx == 1:  # HOW TO
                 scene = 2
 
     # 1: GAME
@@ -290,11 +280,13 @@ def update():
         phase_timer += 1
 
         if game_phase == 0:
+            # 「Janken game begins!」
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
 
         elif game_phase == 1:
+            # 「Which hand should I play?」
             if is_ok_pressed():
                 game_phase = 2
                 phase_timer = 0
@@ -312,6 +304,7 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 3:
+            # 「Are you ready?」
             if is_ok_pressed():
                 game_phase = 4
                 phase_timer = 0
@@ -340,9 +333,9 @@ def update():
                     if player_hand == cpu_hand:
                         result = 0  # draw
                     elif (
-                        (player_hand == 0 and cpu_hand == 1)
-                        or (player_hand == 1 and cpu_hand == 2)
-                        or (player_hand == 2 and cpu_hand == 0)
+                        (player_hand == 0 and cpu_hand == 1)  # ROCK beats SCISSORS
+                        or (player_hand == 1 and cpu_hand == 2)  # SCISSORS beats PAPER
+                        or (player_hand == 2 and cpu_hand == 0)  # PAPER beats ROCK
                     ):
                         result = 1  # win
                     else:
@@ -378,6 +371,7 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 6:
+            # 「You win!」 → Next game! もしくは 10連勝演出へ
             if is_ok_pressed():
                 if win_streak >= 10:
                     game_phase = 11  # 10 wins Congratulations!
@@ -386,6 +380,8 @@ def update():
                 phase_timer = 0
 
         elif game_phase == 7:
+            # 「You lose...」
+
             # 負けた瞬間にフェード開始（1回だけ）
             if win_streak > 0 and score_fade_timer == 0:
                 score_fade_timer = 15  # だいたい 0.5秒くらい
@@ -404,18 +400,21 @@ def update():
                 menu_idx = 0
 
         elif game_phase == 8:
+            # 「Next game!」→ そのまま次ラウンドへ
             if is_ok_pressed():
                 game_phase = 1          # Which hand should I play? へ戻る
                 phase_timer = 0
                 result_decided = False  # 次の勝負用にリセット
 
         elif game_phase == 10:
+            # 「One more time!」(あいこ) → もう一度手選びへ
             if is_ok_pressed():
                 game_phase = 1
                 phase_timer = 0
                 result_decided = False
 
         elif game_phase == 11:
+            # 「10 wins Congratulations!」画面
             if is_ok_pressed():
                 # この時点のスコアを HIGH SCORE に反映
                 if score > high_score:
@@ -463,7 +462,7 @@ def draw_game():
     cpu_icon_x = player_icon_x
     cpu_icon_y = 9  # ★ここを固定値にする
 
-    # 右上 WIN / SCORE 表示（ここは英数字だけなのでデフォルトフォントのまま）
+    # 右上 WIN / SCORE 表示
     show_score = score_unlocked or (score_fade_timer > 0)
 
     if show_score:
@@ -511,8 +510,7 @@ def draw_game():
 
         for i, label in enumerate(HAND_LABELS):
             x = start_x + i * slot_w
-            text_w = len(label) * 4
-            text_x = x + (slot_w - text_w) // 2
+            text_x = x + (slot_w - len(label) * 4) // 2
             label_y = msg_center_y
             pyxel.text(text_x, label_y, label, 7)
 
@@ -529,6 +527,7 @@ def draw_game():
         draw_hand_icon(hand_cursor, player_icon_x, player_icon_y)
 
     elif game_phase == 3:
+        # 「Are you ready?」画面
         draw_centered_text_panel(
             panel_x,
             panel_w,
@@ -587,10 +586,9 @@ def draw():
 
     if scene == 0:
         # ===== TITLE =====
-        # ★ タイトル日本語＆中央寄せ
-        draw_centered_text_screen(30, "じゃんけんゲーム", 7)
+        draw_centered_text_screen(30, "JANKEN GAME", 7)
 
-        # HIGH SCORE 表示（あれば）→ 英数字だけなのでデフォルトフォントでOK
+        # HIGH SCORE 表示（あれば）
         if high_score > 0:
             label = "HIGH SCORE"
             label_x = SCREEN_W - len(label) * 4 - 4
@@ -606,11 +604,8 @@ def draw():
             text_col = 7 if hi else 6
 
             pyxel.rectb(x, y, w, h, border_col)
-
-            # ★ メニュー文字も日本語フォントで中央寄せ
-            text_w = font_ja.text_width(label)
-            tx = x + (w - text_w) // 2
-            pyxel.text(tx, y + 3, label, text_col, font_ja)
+            tx = x + (w - len(label) * 4) // 2
+            pyxel.text(tx, y + 3, label, text_col)
 
             # ▶ カーソル（点滅）
             if hi and pyxel.frame_count % 20 < 10:
@@ -626,14 +621,11 @@ def draw():
 
     elif scene == 2:
         # ===== HOW TO =====
-        # ★ タイトルを「遊び方」にして日本語フォント＆中央寄せ
         title_col = 8 if cheat_mode else 10  # 赤: チートON, 黄: 通常
-        draw_centered_text_screen(20, "遊び方", title_col)
-
-        # ★ 下の説明はとりあえず日本語にして中央寄せ（文言は後でKouが変えてOK）
-        draw_centered_text_screen(50, "←→キー / パッドで選択", 7)
-        draw_centered_text_screen(60, "ENTER / BUTTONSで決定", 7)
-        draw_centered_text_screen(80, "ENTER / BUTTONSでタイトルへ", 13)
+        draw_centered_text_screen(20, "HOW TO PLAY", title_col)
+        pyxel.text(10, 50, "- Use ARROW or GAMEPAD", 7)
+        pyxel.text(10, 60, "- Press ENTER / BUTTONS", 7)
+        pyxel.text(10, 80, "Press ENTER / BUTTONS to TITLE", 13)
 
 
 pyxel.run(update, draw)
