@@ -102,7 +102,7 @@ score_fade_timer = 0        # 負けたときのフェード用タイマー
 # ==== シークレットモード（絶対勝てるモード） ====
 cheat_mode = False
 secret_index = 0
-SECRET_SEQUENCE = ["U", "U", "D", "D", "L", "R", "L", "R", "OK", "OK"]
+SECRET_SEQUENCE = ["U", "R", "D", "L", "U", "R", "D", "L"]
 
 
 # ------------------------------
