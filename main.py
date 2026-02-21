@@ -1,4 +1,5 @@
 import pyxel
+import PyxelUniversalFont
 
 # ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
