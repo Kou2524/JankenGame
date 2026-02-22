@@ -46,36 +46,60 @@
     </div>
 
     <script>
-      /* ====== BGM 切り替え用 set_bgm_scene ======
-         index.html 側で JS → Pyxel に音量設定を渡してる。
-      */
+      /* ====== BGM 切り替え（iOS/Safari対策入り） ====== */
+
       let bgm1 = new Audio("bgm1.mp3");
       let bgm2 = new Audio("bgm2.mp3");
 
       bgm1.loop = true;
       bgm2.loop = true;
 
-      // 音量を 0.25 に設定
       bgm1.volume = 0.25;
       bgm2.volume = 0.25;
+
+      let audioUnlocked = false;   // 1回でもユーザー操作があったか
+      let pendingScene = 0;        // 解禁前に要求されたsceneを記憶
 
       function stopAllBGM() {
         bgm1.pause(); bgm1.currentTime = 0;
         bgm2.pause(); bgm2.currentTime = 0;
       }
 
-      // Pyxel側から呼ばれる
-      window.set_bgm_scene = function (scene) {
+      function playScene(scene) {
         stopAllBGM();
 
-        if (scene === 0) {
-          bgm1.play();
-        } else if (scene === 1) {
-          bgm2.play();
-        } else if (scene === 2) {
-          bgm1.play();   // HOW TOもbgm1
-        }
+        let target = null;
+        if (scene === 0) target = bgm1;
+        else if (scene === 1) target = bgm2;
+        else if (scene === 2) target = bgm1;
+    
+        if (!target) return;
+
+        // iOSはplay()がPromiseで失敗することあるから握りつぶす
+        target.play().catch(() => {});
+      }
+
+      // Pyxel側から呼ばれる
+      window.set_bgm_scene = function (scene) {
+        pendingScene = scene;
+
+        // まだ解禁されてないなら「覚えるだけ」で再生しない
+        if (!audioUnlocked) return;
+
+        playScene(scene);
       };
-    </script>
+
+　　　　  // ユーザー操作が来た瞬間に音を解禁して、保留中のBGMを流す
+      function unlockAudioOnce() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+        playScene(pendingScene);
+      }
+
+      // どれか1回でOK（iPhone用にtouchstartも入れる）
+      window.addEventListener("pointerdown", unlockAudioOnce, { once: true });
+      window.addEventListener("touchstart", unlockAudioOnce, { once: true });
+      window.addEventListener("keydown", unlockAudioOnce, { once: true });
+　　　　</script>
   </body>
 </html>
